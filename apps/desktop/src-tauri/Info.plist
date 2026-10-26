@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSInputMonitoringUsageDescription</key>
+  <string>Trajectory reads keyboard and pointer events only to calculate local input statistics. It never stores typed text, shortcut sequences, app names, or raw pointer paths.</string>
+  <key>LSUIElement</key>
+  <false/>
+</dict>
+</plist>

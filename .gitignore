@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+coverage/
+playwright-report/
+test-results/
+target/
+.superpowers/
+.DS_Store
+*.log
+*.db
+*.db-shm
+*.db-wal
+apps/desktop/src-tauri/gen/schemas/
