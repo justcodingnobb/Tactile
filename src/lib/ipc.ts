@@ -1,6 +1,13 @@
 import { invoke, type InvokeArgs } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { relaunch as pluginRelaunch } from "@tauri-apps/plugin-process";
+import {
+  check as pluginCheck,
+  type DownloadEvent,
+  type Update,
+} from "@tauri-apps/plugin-updater";
 import { demoStats, makeEmptyStats } from "./demo";
+import { downloadProgress, type UpdateInfo } from "./updater";
 import type {
   AppSettings,
   CaptureState,
@@ -26,7 +33,7 @@ export const mockState: {
   updateSettingsError: false,
   settings: {
     launch_at_login: false,
-    check_updates: false,
+    check_updates: true,
     theme: "system",
     language: "system",
     shortcuts_enabled: true,
@@ -213,4 +220,85 @@ export async function clearData(): Promise<void> {
     return;
   }
   await call("clear_data");
+}
+
+export type AvailableUpdate = UpdateInfo;
+
+/**
+ * The updater's download handle stays in this module, so React state only
+ * contains plain serializable data.
+ */
+let pendingUpdate: Update | null = null;
+
+async function closeUpdate(update: Update | null): Promise<void> {
+  if (!update) {
+    return;
+  }
+  try {
+    await update.close();
+  } catch {
+    // The backend may already have released the resource after an install.
+  }
+}
+
+async function replacePendingUpdate(next: Update | null): Promise<void> {
+  const previous = pendingUpdate;
+  pendingUpdate = next;
+  if (previous !== next) {
+    await closeUpdate(previous);
+  }
+}
+
+/** Browser previews resolve manual checks as up to date for deterministic UI. */
+export type UpdateCheckOutcome =
+  | { kind: "available"; update: AvailableUpdate }
+  | { kind: "upToDate" }
+  | { kind: "unavailable" };
+
+export async function checkForUpdate(manual: boolean): Promise<UpdateCheckOutcome> {
+  if (!isTauri) {
+    return manual ? { kind: "upToDate" } : { kind: "unavailable" };
+  }
+  const update = await pluginCheck();
+  await replacePendingUpdate(update);
+  if (!update) {
+    return { kind: "upToDate" };
+  }
+  return {
+    kind: "available",
+    update: {
+      version: update.version,
+      notes: update.body ?? "",
+      date: update.date ?? null,
+    },
+  };
+}
+
+export async function installPendingUpdate(
+  onProgress: (progress: number | null) => void,
+): Promise<void> {
+  if (!isTauri || !pendingUpdate) {
+    return;
+  }
+  let downloaded = 0;
+  let total: number | null = null;
+  await pendingUpdate.downloadAndInstall((event: DownloadEvent) => {
+    if (event.event === "Started") {
+      total = event.data.contentLength ?? null;
+      onProgress(downloadProgress(0, total));
+    } else if (event.event === "Progress") {
+      downloaded += event.data.chunkLength ?? 0;
+      onProgress(downloadProgress(downloaded, total));
+    } else {
+      onProgress(1);
+    }
+  });
+  await replacePendingUpdate(null);
+}
+
+export async function relaunchApp(): Promise<void> {
+  if (!isTauri) {
+    return;
+  }
+  await pluginRelaunch();
 }

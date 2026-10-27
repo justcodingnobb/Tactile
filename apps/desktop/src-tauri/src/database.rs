@@ -10,7 +10,7 @@ use trajectory_core::models::{
 };
 use trajectory_core::stats::{click_heatmap, summarize_buckets};
 
-const SCHEMA_VERSION: i64 = 3;
+const SCHEMA_VERSION: i64 = 4;
 /// Key id that older builds stored for the macOS globe/Fn key (keycode 179).
 const MISCOUNTED_FN_KEY: &str = "key_10b3";
 const HEATMAP_CELLS: usize = HEATMAP_COLUMNS * HEATMAP_ROWS;
@@ -650,6 +650,32 @@ fn remove_miscounted_fn(connection: &mut Connection) -> Result<(), StoreError> {
     Ok(())
 }
 
+/// The old disabled toggle left `check_updates: false` in every stored
+/// settings row. Enable it once; later user choices are not overwritten.
+fn enable_update_checks(connection: &mut Connection) -> Result<(), StoreError> {
+    let tx = connection.transaction()?;
+    let json: Option<String> = tx
+        .query_row("SELECT value FROM settings WHERE key = 'app'", [], |row| {
+            row.get(0)
+        })
+        .optional()?;
+    if let Some(json) = json
+        && let Ok(mut settings) = serde_json::from_str::<serde_json::Value>(&json)
+        && let Some(object) = settings.as_object_mut()
+    {
+        object.insert("check_updates".into(), serde_json::Value::Bool(true));
+        tx.execute(
+            "UPDATE settings SET value = ?1 WHERE key = 'app'",
+            params![
+                serde_json::to_string(&settings).map_err(|_| StoreError::SettingsSerialization)?
+            ],
+        )?;
+    }
+    tx.execute_batch("PRAGMA user_version = 4;")?;
+    tx.commit()?;
+    Ok(())
+}
+
 fn migrate(connection: &mut Connection) -> Result<(), StoreError> {
     let version: i64 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
     if version > SCHEMA_VERSION {
@@ -756,6 +782,9 @@ fn migrate(connection: &mut Connection) -> Result<(), StoreError> {
     }
     if connection.query_row("PRAGMA user_version", [], |row| row.get::<_, i64>(0))? < 3 {
         remove_miscounted_fn(connection)?;
+    }
+    if connection.query_row("PRAGMA user_version", [], |row| row.get::<_, i64>(0))? < 4 {
+        enable_update_checks(connection)?;
     }
     Ok(())
 }
@@ -874,6 +903,40 @@ mod tests {
     fn schema_version_is_initialized() {
         let store = Store::open_in_memory().unwrap();
         assert_eq!(store.schema_version().unwrap(), SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn migration_enables_updates_in_stored_settings() {
+        let mut connection = Connection::open_in_memory().unwrap();
+        connection
+            .execute_batch(
+                "CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+                 PRAGMA user_version = 3;",
+            )
+            .unwrap();
+        connection
+            .execute(
+                "INSERT INTO settings (key, value) VALUES ('app', ?1)",
+                params![r#"{"launch_at_login":false,"check_updates":false,"theme":"system","language":"system","shortcuts_enabled":true,"onboarding_complete":true}"#],
+            )
+            .unwrap();
+
+        migrate(&mut connection).unwrap();
+
+        let json: String = connection
+            .query_row("SELECT value FROM settings WHERE key = 'app'", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+        let settings: AppSettings = serde_json::from_str(&json).unwrap();
+        assert!(settings.check_updates);
+        assert!(settings.onboarding_complete);
+        assert_eq!(
+            connection
+                .query_row("PRAGMA user_version", [], |row| row.get::<_, i64>(0))
+                .unwrap(),
+            SCHEMA_VERSION
+        );
     }
 
     #[test]

@@ -5,6 +5,7 @@ import { Onboarding } from "./components/Onboarding";
 import { ShareCardDialog } from "./components/ExportDialog";
 import { Topbar } from "./components/Topbar";
 import { Toast, useToast } from "./components/Toast";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { useDashboard } from "./hooks/useDashboard";
 import { useAppControl } from "./hooks/useAppControl";
 import { OverviewPage } from "./pages/OverviewPage";
@@ -39,7 +40,7 @@ function App() {
   const toast = useToast();
 
   const control = useAppControl(toast.show);
-  const { settings, status, ready } = control;
+  const { settings, status, ready, updater } = control;
   const language = resolveLanguage(settings.language);
   const t = dictionary(language);
   const demo = status.demo_mode;
@@ -117,6 +118,7 @@ function App() {
           <SettingsPage
             settings={settings}
             onSettings={control.saveSettings}
+            updater={updater}
             status={status}
             stats={stats}
             language={language}
@@ -196,6 +198,19 @@ function App() {
               {t.actions.retry}
             </button>
           </div>
+        )}
+        {!onboarding && updater.bannerVisible && (
+          <UpdateBanner
+            phase={updater.phase}
+            version={updater.availableVersion}
+            notesOpen={updater.notesOpen}
+            onNotes={() => updater.setNotesOpen(!updater.notesOpen)}
+            onInstall={() => void updater.install()}
+            onDismiss={updater.dismiss}
+            onRestart={() => void updater.restart()}
+            t={t}
+            language={language}
+          />
         )}
         <main className={onboarding ? "main onboarding-main" : "main"}>
           {onboarding ? (

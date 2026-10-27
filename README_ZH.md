@@ -20,7 +20,8 @@
 </p>
 
 指痕统计你如何使用键盘和鼠标，但不记录你输入了什么。所有聚合数据都
-保存在本地 SQLite 数据库中，支持 macOS 与 Windows；当前测试版不发起网络请求。
+保存在本地 SQLite 数据库中，支持 macOS 与 Windows。应用唯一的网络请求是
+可选的 GitHub 更新检查，不发送任何统计数据，并且可以在设置中关闭。
 
 ## 功能
 
@@ -51,7 +52,8 @@
 | 中英文界面 | ✅ 可用 |
 | 演示模式 | ✅ 可用 |
 | 从源码构建 macOS 与 Windows 桌面端 | ✅ 可用 |
-| 正式安装包与更新检查 | ❌ 未配置 |
+| GitHub 发布流水线 | ✅ 已配置 |
+| 签名应用内更新 | ✅ 配置发布签名后可用 |
 
 ## 快速开始
 
@@ -85,6 +87,19 @@ npm run tauri:build
 
 Tauri 配置的目标格式为 macOS DMG 与 Windows NSIS。在 macOS 上，如果当前环境
 无法生成 DMG，可运行 `npx tauri build --debug --bundles app` 生成 `.app`。
+本地未签名构建需要临时关闭更新产物，否则会因为缺少签名密钥而失败：
+
+```bash
+npx tauri build --debug --bundles app \
+  --config '{"bundle":{"createUpdaterArtifacts":false}}'
+```
+
+设置 `TAURI_SIGNING_PRIVATE_KEY` 后会生成 `.app.tar.gz`、`.app.tar.gz.sig`
+与 NSIS 更新产物；没有密钥时请使用上面的临时覆盖配置。
+
+`npm run tauri:build` 会执行正常的打包构建；本地没有签名密钥时，请使用上面的
+命令临时关闭更新产物。
+
 CI 会在 macOS 上构建调试版 `.app`，在 Windows 上构建调试版 NSIS 安装包。
 
 ## 开发
@@ -135,8 +150,24 @@ src/                       React 仪表盘与多语言
 ### 构建与发布限制
 
 本地 macOS 构建仅使用临时/链接签名，因此默认不会嵌入 entitlements。Windows
-和 macOS 的正式签名、公证及可分发安装包尚未配置。更新检查当前处于关闭状态，
-尚未实现。
+和 macOS 的正式签名、公证尚未在此配置；未签名的 macOS 构建会触发 Gatekeeper
+警告。应用内更新使用独立的 Tauri 更新签名密钥，与平台代码签名无关。
+
+### 发布流程
+
+1. 更新所有版本来源：`npm run version:set -- 0.2.0`。
+2. 提交版本变更，等待常规构建检查通过。
+3. 创建并推送标签：`git tag v0.2.0 && git push origin v0.2.0`。
+4. 等待 `release` 工作流生成 GitHub 草稿发布。
+5. 检查发布附件与说明，然后发布。
+
+创建标签前，请配置仓库密钥 `TAURI_SIGNING_PRIVATE_KEY`。如果密钥设置了密码，
+再配置 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`；无密码密钥无需设置该项。工作流通过
+`tauri-apps/tauri-action` 生成 macOS arm64/x86_64 与 Windows 产物，并由该
+action 根据签名产物生成 `latest.json`。发布任务串行运行，避免各平台的清单
+互相覆盖。更新端点指向
+`releases/latest/download/latest.json`，因此只有仓库与发布可公开下载时才生效；
+GitHub 的 `latest` 不包含草稿或预发布版本。
 
 ## 数据与隐私
 
@@ -145,7 +176,7 @@ src/                       React 仪表盘与多语言
 - 分钟桶：保留 48 小时。
 - 小时聚合：保留 90 天。
 - 日聚合与每日按键/点击汇总：保留至手动清除。
-- 设置：主题、语言、启动、快捷键与引导状态。
+- 设置：主题、语言、启动、快捷键、引导状态与更新检查偏好。
 
 数据库没有额外的应用层加密，依赖操作系统账户与磁盘权限。设置中的“清除数据”
 当前会删除全部应用统计数据，不支持按日期范围清除。操作系统备份可能保留副本。

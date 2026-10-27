@@ -21,6 +21,8 @@ tauri-plugin-dialog = "2.8.3"
 tauri-plugin-global-shortcut = "2.4.1"
 tauri-plugin-opener = "2.7.2"
 tauri-plugin-single-instance = "2.3.0"
+tauri-plugin-updater = "=2.14.0"
+tauri-plugin-process = "=2.4.0"
 rusqlite = { version = "0.37", features = ["bundled"] }
 serde.workspace = true
 serde_json.workspace = true

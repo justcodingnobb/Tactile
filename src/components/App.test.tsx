@@ -16,7 +16,7 @@ describe("Tactile app", () => {
     mockState.updateSettingsError = false;
     mockState.settings = {
       launch_at_login: false,
-      check_updates: false,
+      check_updates: true,
       theme: "system",
       language: "system",
       shortcuts_enabled: true,
@@ -115,6 +115,22 @@ describe("Tactile app", () => {
     await waitFor(() => {
       expect(autostart).toHaveAttribute("aria-checked", "false");
     });
+  });
+
+  it("offers a working automatic update toggle and version row", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(
+      await screen.findByRole("button", { name: /Enter the dashboard|进入仪表盘/ }),
+    );
+    await user.click(await screen.findByRole("button", { name: /Settings|设置/ }));
+    const toggle = await screen.findByRole("switch", {
+      name: /Check for updates automatically|自动检查更新/,
+    });
+    expect(toggle).toHaveAttribute("aria-checked", "true");
+    expect(screen.queryByText(/Coming soon|即将推出/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Check now|检查更新/ }));
+    expect(await screen.findByText(/You're up to date|已是最新版本/)).toBeInTheDocument();
   });
 
   it("does not invent a click when no button was pressed", () => {

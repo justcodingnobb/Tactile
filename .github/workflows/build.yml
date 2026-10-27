@@ -45,8 +45,8 @@ jobs:
 
       - name: Package macOS app
         if: runner.os == 'macOS'
-        run: npx tauri build --debug --bundles app
+        run: npx tauri build --debug --bundles app --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
       - name: Package Windows installer
         if: runner.os == 'Windows'
-        run: npx tauri build --debug --bundles nsis
+        run: npx tauri build --debug --bundles nsis --config '{"bundle":{"createUpdaterArtifacts":false}}'

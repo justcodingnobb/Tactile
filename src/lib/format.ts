@@ -104,7 +104,7 @@ export function weekStartIso(): string {
 export function defaultSettings(): AppSettings {
   return {
     launch_at_login: true,
-    check_updates: false,
+    check_updates: true,
     theme: "system",
     language: "system",
     shortcuts_enabled: true,
