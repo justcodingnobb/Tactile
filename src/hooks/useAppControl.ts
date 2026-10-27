@@ -19,6 +19,7 @@ import {
   updateSettings,
 } from "../lib/ipc";
 import type { AppSettings, CaptureState, StatsRequest } from "../types";
+import { useUpdater } from "./useUpdater";
 
 const initialStatus: CaptureState = {
   status: "active",
@@ -44,6 +45,7 @@ export function useAppControl(notify: (message: string) => void) {
   const t = dictionary(resolveLanguage(settings.language));
   const tRef = useRef(t);
   tRef.current = t;
+  const updater = useUpdater(settings, ready, notify);
 
   useEffect(() => {
     let active = true;
@@ -205,6 +207,7 @@ export function useAppControl(notify: (message: string) => void) {
 
   return {
     settings,
+    updater,
     status,
     ready,
     onboarding,

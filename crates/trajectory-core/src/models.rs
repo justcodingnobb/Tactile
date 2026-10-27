@@ -278,7 +278,7 @@ impl Default for AppSettings {
         Self {
             // Opt-in: registering a login item should be the user's choice.
             launch_at_login: false,
-            check_updates: false,
+            check_updates: true,
             theme: ThemePreference::System,
             language: LanguagePreference::System,
             shortcuts_enabled: true,

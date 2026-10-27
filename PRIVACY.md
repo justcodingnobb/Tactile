@@ -2,7 +2,11 @@
 
 Tactile is designed as an offline, local-only input statistics tool. It does
 not include an account system, cloud sync, advertising, analytics, or usage
-telemetry. The current beta makes no outbound network requests.
+telemetry. Its only network request is the optional update check to
+`github.com`. The check sends no statistics, input data, or device identifier.
+As with any HTTP request, GitHub receives standard request metadata such as the
+IP address, updater user agent, and request time. Disable automatic checks in
+Settings at any time.
 
 ## Data Stored
 
@@ -14,6 +18,7 @@ The local SQLite database contains aggregate counters:
 - Active seconds and minute, hour, and local-day aggregates.
 - Local preferences such as theme, language, autostart, shortcuts, and
   onboarding completion.
+- The last update-check time, stored in webview local storage.
 
 The database does not store typed text, individual key sequences, clipboard
 contents, application names, window titles, screen contents, or raw pointer

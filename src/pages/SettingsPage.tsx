@@ -1,7 +1,9 @@
-import { Download, Mouse, Pause, Play } from "lucide-react";
+import { Download, Mouse, Pause, Play, RefreshCw } from "lucide-react";
 import { MetricLabel, SectionHeading, Segmented, StatusDot, Toggle } from "../components/Primitives";
 import type { Dictionary } from "../i18n";
 import { formatBytes, type Language } from "../lib/format";
+import { updateSettingsLabel } from "../lib/updater";
+import type { useUpdater } from "../hooks/useUpdater";
 import type { AppSettings, CaptureState, StatsSnapshot } from "../types";
 
 const IS_MAC = /Mac/i.test(navigator.platform);
@@ -9,6 +11,7 @@ const IS_MAC = /Mac/i.test(navigator.platform);
 export function SettingsPage({
   settings,
   onSettings,
+  updater,
   status,
   stats,
   language,
@@ -28,6 +31,7 @@ export function SettingsPage({
 }: {
   settings: AppSettings;
   onSettings: (patch: Partial<AppSettings>) => Promise<void>;
+  updater: ReturnType<typeof useUpdater>;
   status: CaptureState;
   stats: StatsSnapshot;
   language: Language;
@@ -46,6 +50,7 @@ export function SettingsPage({
   busy: boolean;
 }) {
   const demo = status.demo_mode;
+  const checkStatus = updateSettingsLabel(updater.phase, language);
   return (
     <div className="page settings-page">
       <SectionHeading
@@ -139,17 +144,53 @@ export function SettingsPage({
             />
           </label>
           <label className="setting-row">
-            <span>
-              {t.settings.updates}
-              <small className="setting-status">{t.settings.updatesSoon}</small>
-            </span>
+            <span>{t.settings.updates}</span>
             <Toggle
               checked={settings.check_updates}
               label={t.settings.updates}
               onChange={(checked) => void onSettings({ check_updates: checked })}
-              disabled
             />
           </label>
+          <div className="update-settings-row">
+            <dl>
+              <div>
+                <dt>{t.settings.currentVersion}</dt>
+                <dd>v{__APP_VERSION__}</dd>
+              </div>
+              <div>
+                <dt>{t.settings.lastChecked}</dt>
+                <dd>{updater.lastCheckedLabel}</dd>
+              </div>
+            </dl>
+            <div className="update-check-action">
+              <button
+                className="outline-button"
+                type="button"
+                onClick={() => void updater.check({ manual: true })}
+                disabled={
+                  updater.phase.kind === "checking" || updater.phase.kind === "downloading"
+                }
+              >
+                <RefreshCw
+                  size={14}
+                  className={updater.phase.kind === "checking" ? "spin" : undefined}
+                />
+                {updater.phase.kind === "checking"
+                  ? t.settings.checking
+                  : t.settings.checkNow}
+              </button>
+              {checkStatus && (
+                <small
+                  className={
+                    updater.phase.kind === "error" ? "form-error" : "setting-status-block"
+                  }
+                  role={updater.phase.kind === "error" ? "alert" : "status"}
+                >
+                  {checkStatus}
+                </small>
+              )}
+            </div>
+          </div>
           <p className="fine-print">
             {IS_MAC ? "⌘ ⇧ P · ⌘ ⇧ T" : "Ctrl ⇧ P · Ctrl ⇧ T"} ·{" "}
             {language === "zh" ? "暂停/继续 · 打开窗口" : "pause/resume · show window"}
