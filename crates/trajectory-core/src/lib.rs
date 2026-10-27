@@ -2,6 +2,7 @@ pub mod aggregation;
 pub mod capture;
 pub mod export;
 pub mod keys;
+pub mod live;
 pub mod models;
 pub mod platform_info;
 pub mod stats;

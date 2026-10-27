@@ -114,12 +114,26 @@ impl AggregationState {
         self.last_position = None;
     }
 
+    pub fn reset_metrics(&mut self) {
+        self.current = None;
+        self.pending.clear();
+    }
+
     pub fn set_screen_size(&mut self, screen_width: f64, screen_height: f64) {
         let screen = (screen_width.max(1.0), screen_height.max(1.0));
         if screen != self.screen {
             self.screen = screen;
             self.last_position = None;
         }
+    }
+
+    /// Heatmap cell a click at `point` lands in, using the current screen size.
+    pub fn heatmap_cell(&self, point: Option<Point>) -> Option<usize> {
+        point.and_then(|point| heatmap_index(point, self.screen))
+    }
+
+    pub fn wheel_unit(&self) -> f64 {
+        self.wheel_unit
     }
 
     pub fn take_pending(&mut self) -> Vec<AggregatedBucket> {
@@ -187,6 +201,9 @@ pub fn flush_bucket(state: &mut AggregationState) -> Vec<AggregatedBucket> {
 }
 
 pub fn heatmap_index(point: Point, screen: (f64, f64)) -> Option<usize> {
+    if !point.x.is_finite() || !point.y.is_finite() {
+        return None;
+    }
     if point.x < 0.0 || point.y < 0.0 || point.x >= screen.0 || point.y >= screen.1 {
         return None;
     }
@@ -287,6 +304,14 @@ mod tests {
     }
 
     #[test]
+    fn normalized_wheel_step_counts_once() {
+        let mut state = AggregationState::new(1920.0, 1080.0, MAC_WHEEL_UNIT);
+        state.ingest(InputEvent::Wheel { delta_y: 1.0 }, utc(8, 0, 0));
+        let bucket = state.drain().pop().unwrap();
+        assert_eq!(bucket.metrics.wheel_up, 1.0);
+    }
+
+    #[test]
     fn one_active_second_counts_once_per_bucket_date() {
         let mut state = AggregationState::new(1920.0, 1080.0, 120.0);
         for second in [1, 1, 2] {
@@ -365,5 +390,30 @@ mod tests {
         let bucket = state.drain().pop().unwrap();
         assert_eq!(bucket.metrics.left_clicks, 1);
         assert_eq!(bucket.metrics.click_cells.iter().sum::<u64>(), 1);
+    }
+
+    #[test]
+    fn reset_metrics_discards_pending_and_current_buckets() {
+        let mut state = AggregationState::new(100.0, 100.0, 120.0);
+        state.ingest(
+            InputEvent::ButtonDown {
+                button: PointerButton::Left,
+                point: None,
+            },
+            utc(8, 0, 0),
+        );
+        state.reset_metrics();
+        assert!(state.drain().is_empty());
+
+        state.ingest(
+            InputEvent::ButtonDown {
+                button: PointerButton::Right,
+                point: None,
+            },
+            utc(8, 0, 1),
+        );
+        let bucket = state.drain().pop().unwrap();
+        assert_eq!(bucket.metrics.left_clicks, 0);
+        assert_eq!(bucket.metrics.right_clicks, 1);
     }
 }

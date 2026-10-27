@@ -22,11 +22,11 @@ export const ShareCard = forwardRef<
       <div className="share-orbit orbit-a" />
       <div className="share-orbit orbit-b" />
       <header>
-        <span>TRAJECTORY / 轨迹</span>
+        <span>指痕 · TACTILE</span>
         <span>{language === "zh" ? "只在本机" : "LOCAL ONLY"}</span>
       </header>
       <div className="share-main">
-        <p>{language === "zh" ? "指针累计距离" : "POINTER DISTANCE"}</p>
+        <p>{language === "zh" ? "鼠标累计距离" : "MOUSE DISTANCE"}</p>
         <div className="share-distance">
           <strong>{formatDistance(stats.totals.distance_km, language)}</strong>
           <span>KM</span>

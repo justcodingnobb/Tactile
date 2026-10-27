@@ -10,7 +10,9 @@ use trajectory_core::models::{
 };
 use trajectory_core::stats::{click_heatmap, summarize_buckets};
 
-const SCHEMA_VERSION: i64 = 2;
+const SCHEMA_VERSION: i64 = 3;
+/// Key id that older builds stored for the macOS globe/Fn key (keycode 179).
+const MISCOUNTED_FN_KEY: &str = "key_10b3";
 const HEATMAP_CELLS: usize = HEATMAP_COLUMNS * HEATMAP_ROWS;
 
 #[derive(Debug, Error)]
@@ -37,6 +39,9 @@ impl Store {
             fs::create_dir_all(parent)?;
         }
         let mut connection = Connection::open(&path)?;
+        // Another writer (e.g. a second instance during an update) should wait
+        // briefly instead of failing with SQLITE_BUSY.
+        connection.busy_timeout(std::time::Duration::from_secs(3))?;
         connection.pragma_update(None, "journal_mode", "WAL")?;
         connection.pragma_update(None, "synchronous", "NORMAL")?;
         connection.pragma_update(None, "foreign_keys", "ON")?;
@@ -44,7 +49,7 @@ impl Store {
         Ok(Self { connection, path })
     }
 
-    #[cfg(test)]
+    /// Fallback store used when the database file cannot be opened.
     pub fn open_in_memory() -> Result<Self, StoreError> {
         let mut connection = Connection::open_in_memory()?;
         migrate(&mut connection)?;
@@ -187,14 +192,14 @@ impl Store {
                      VALUES (?1, ?2, ?3)
                      ON CONFLICT(bucket_start_utc, cell_index)
                      DO UPDATE SET count = bucket_click_cells.count + excluded.count",
-                    params![key.0, index as i64, *value as i64],
+                    params![key.0, index as i64, to_sql_count(*value)],
                 )?;
                 tx.execute(
                     "INSERT INTO daily_click_cells (local_date, cell_index, count)
                      VALUES (?1, ?2, ?3)
                      ON CONFLICT(local_date, cell_index)
                      DO UPDATE SET count = daily_click_cells.count + excluded.count",
-                    params![key.1, index as i64, *value as i64],
+                    params![key.1, index as i64, to_sql_count(*value)],
                 )?;
             }
             for (key_id, count) in &bucket.metrics.keys {
@@ -292,7 +297,7 @@ impl Store {
                 Ok(AggregatedBucket {
                     start_utc,
                     local_date,
-                    local_hour: row.get::<_, i64>(2)? as u8,
+                    local_hour: row.get::<_, i64>(2)?.clamp(0, 23) as u8,
                     granularity: Granularity::Day,
                     metrics: BucketMetrics {
                         distance_px: row.get::<_, f64>(3)?,
@@ -346,10 +351,15 @@ impl Store {
             },
         )? {
             let (hour, left, right, middle, side1, side2, other, keys, active_seconds) = row?;
-            if let Some(point) = points.get_mut(hour.max(0) as usize % 24) {
-                point.events +=
-                    (left + right + middle + side1 + side2 + other + keys).max(0) as u64;
-                point.active_seconds += active_seconds.max(0) as u64;
+            if let Some(point) = points.get_mut(hour.clamp(0, 23) as usize) {
+                let events = [left, right, middle, side1, side2, other, keys]
+                    .into_iter()
+                    .map(|value| value.max(0) as u64)
+                    .fold(0_u64, u64::saturating_add);
+                point.events = point.events.saturating_add(events);
+                point.active_seconds = point
+                    .active_seconds
+                    .saturating_add(active_seconds.max(0) as u64);
             }
         }
         Ok(points)
@@ -405,7 +415,8 @@ impl Store {
             |row| Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?)),
         )? {
             let (key_id, count) = row?;
-            *totals.entry(key_id).or_default() += count.max(0) as u64;
+            let total = totals.entry(key_id).or_default();
+            *total = total.saturating_add(count.max(0) as u64);
         }
         Ok(totals.into_iter().collect())
     }
@@ -483,7 +494,8 @@ impl Store {
             }
         }
         tx.commit()?;
-        self.connection.execute_batch("VACUUM")?;
+        // Reclaiming space is best effort; the data is already gone.
+        let _ = self.connection.execute_batch("VACUUM");
         Ok(())
     }
 
@@ -554,7 +566,7 @@ impl Store {
     }
 
     pub fn database_size(&self) -> u64 {
-        fs::metadata(&self.path).map(|meta| meta.len()).unwrap_or(0)
+        database_file_size(&self.path)
     }
 
     #[cfg(test)]
@@ -563,6 +575,21 @@ impl Store {
             .connection
             .query_row("PRAGMA user_version", [], |row| row.get(0))?)
     }
+}
+
+fn to_sql_count(value: u64) -> i64 {
+    i64::try_from(value).unwrap_or(i64::MAX)
+}
+
+fn database_file_size(path: &Path) -> u64 {
+    let base = fs::metadata(path).map(|meta| meta.len()).unwrap_or(0);
+    let wal = fs::metadata(format!("{}-wal", path.display()))
+        .map(|meta| meta.len())
+        .unwrap_or(0);
+    let shm = fs::metadata(format!("{}-shm", path.display()))
+        .map(|meta| meta.len())
+        .unwrap_or(0);
+    base.saturating_add(wal).saturating_add(shm)
 }
 
 fn previous_range(range: &TimeRange) -> TimeRange {
@@ -580,11 +607,47 @@ fn previous_range(range: &TimeRange) -> TimeRange {
 }
 
 fn local_midnight_utc(date: NaiveDate) -> i64 {
+    // Midnight can be skipped by a DST change; fall back to UTC midnight so the
+    // day row still has a stable key instead of drifting with `now`.
+    let midnight = date.and_time(chrono::NaiveTime::MIN);
     Local
-        .from_local_datetime(&date.and_hms_opt(0, 0, 0).expect("valid midnight"))
+        .from_local_datetime(&midnight)
         .earliest()
-        .unwrap_or_else(Local::now)
-        .timestamp()
+        .map(|local| local.timestamp())
+        .unwrap_or_else(|| midnight.and_utc().timestamp())
+}
+
+/// Fn is a modifier and must not be counted, but keycode 179 used to fall
+/// through as an ordinary key. Drop those rows and take them out of the daily
+/// totals (hourly rows have no per-key detail and keep the small overcount).
+fn remove_miscounted_fn(connection: &mut Connection) -> Result<(), StoreError> {
+    let tx = connection.transaction()?;
+    tx.execute(
+        "UPDATE bucket_metrics SET key_presses = MAX(0, key_presses - (
+            SELECT count FROM daily_key_counts d
+            WHERE d.local_date = bucket_metrics.local_date AND d.key_id = ?1))
+         WHERE granularity = 'day' AND local_date IN (
+            SELECT local_date FROM daily_key_counts WHERE key_id = ?1)",
+        params![MISCOUNTED_FN_KEY],
+    )?;
+    tx.execute(
+        "UPDATE bucket_daily SET key_presses = MAX(0, key_presses - (
+            SELECT count FROM daily_key_counts d
+            WHERE d.local_date = bucket_daily.local_date AND d.key_id = ?1))
+         WHERE local_date IN (SELECT local_date FROM daily_key_counts WHERE key_id = ?1)",
+        params![MISCOUNTED_FN_KEY],
+    )?;
+    tx.execute(
+        "DELETE FROM daily_key_counts WHERE key_id = ?1",
+        params![MISCOUNTED_FN_KEY],
+    )?;
+    tx.execute(
+        "DELETE FROM bucket_keys WHERE key_id = ?1",
+        params![MISCOUNTED_FN_KEY],
+    )?;
+    tx.execute_batch("PRAGMA user_version = 3;")?;
+    tx.commit()?;
+    Ok(())
 }
 
 fn migrate(connection: &mut Connection) -> Result<(), StoreError> {
@@ -691,6 +754,9 @@ fn migrate(connection: &mut Connection) -> Result<(), StoreError> {
         )?;
         tx.commit()?;
     }
+    if connection.query_row("PRAGMA user_version", [], |row| row.get::<_, i64>(0))? < 3 {
+        remove_miscounted_fn(connection)?;
+    }
     Ok(())
 }
 
@@ -774,6 +840,22 @@ mod tests {
     }
 
     #[test]
+    fn migration_removes_miscounted_fn_presses() {
+        let mut store = Store::open_in_memory().unwrap();
+        let mut bucket = sample_bucket(20);
+        bucket.metrics.keys.push((MISCOUNTED_FN_KEY.into(), 5));
+        store.write_buckets(&[bucket]).unwrap();
+        remove_miscounted_fn(&mut store.connection).unwrap();
+        let range = TimeRange {
+            start_local_day: NaiveDate::from_ymd_opt(2026, 10, 20).unwrap(),
+            end_local_day: NaiveDate::from_ymd_opt(2026, 10, 20).unwrap(),
+        };
+        let stats = store.stats(&range).unwrap();
+        assert_eq!(stats.totals.key_presses, 15);
+        assert!(stats.keys.iter().all(|key| key.key_id != MISCOUNTED_FN_KEY));
+    }
+
+    #[test]
     fn settings_round_trip() {
         let store = Store::open_in_memory().unwrap();
         let settings = AppSettings {
@@ -791,7 +873,7 @@ mod tests {
     #[test]
     fn schema_version_is_initialized() {
         let store = Store::open_in_memory().unwrap();
-        assert_eq!(store.schema_version().unwrap(), 2);
+        assert_eq!(store.schema_version().unwrap(), SCHEMA_VERSION);
     }
 
     #[test]
@@ -808,5 +890,21 @@ mod tests {
         assert_eq!(store.stats(&range).unwrap().totals.key_presses, 20);
         assert_eq!(store.stats(&range).unwrap().keys[0].count, 7);
         assert_eq!(store.click_heatmap(&range).unwrap().filtered_total, 2);
+    }
+
+    #[test]
+    fn database_size_includes_wal_sidecar() {
+        let directory = std::env::temp_dir().join(format!(
+            "trajectory-wal-size-{}-{}",
+            std::process::id(),
+            rand::random::<u64>()
+        ));
+        fs::create_dir_all(&directory).unwrap();
+        let path = directory.join("trajectory.db");
+        let store = Store::open(&path).unwrap();
+        fs::write(format!("{}-wal", path.display()), vec![0_u8; 4096]).unwrap();
+        assert!(store.database_size() >= 4096);
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
     }
 }

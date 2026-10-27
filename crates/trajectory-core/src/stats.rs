@@ -116,9 +116,7 @@ pub fn summarize_buckets(
     let mut key_counts: Vec<KeyCount> = keys
         .into_iter()
         .map(|(id, (stored_label, count))| {
-            let label = crate::keys::key_code_from_id(&id)
-                .map(|code| crate::keys::display_key_label(code, None))
-                .unwrap_or(stored_label);
+            let label = crate::keys::canonical_label(&id, &stored_label);
             KeyCount {
                 key_id: id,
                 label,

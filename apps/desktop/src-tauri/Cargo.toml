@@ -3,7 +3,7 @@ name = "trajectory-desktop"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Trajectory local input statistics"
+description = "Tactile local input statistics"
 
 [lib]
 name = "trajectory_desktop_lib"
