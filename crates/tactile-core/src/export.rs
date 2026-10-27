@@ -87,7 +87,7 @@ pub fn sanitize_filename(input: &str) -> String {
         })
         .collect();
     if filtered.is_empty() {
-        "trajectory-export".into()
+        "tactile-export".into()
     } else {
         filtered
     }

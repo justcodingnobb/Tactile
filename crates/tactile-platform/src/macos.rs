@@ -20,7 +20,7 @@ use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::ptr::NonNull;
 use std::sync::Mutex;
 use std::sync::atomic::Ordering;
-use trajectory_core::models::{ModifierSet, Point, RawInputEvent};
+use tactile_core::models::{ModifierSet, Point, RawInputEvent};
 
 const RUN_LOOP_SLICE_SECONDS: f64 = 0.25;
 const CAPS_LOCK_CODE: u32 = 0x00a0;

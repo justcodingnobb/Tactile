@@ -12,15 +12,15 @@ use serde::Deserialize;
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, MutexGuard};
-use tauri::menu::MenuItem;
-use tauri::{AppHandle, Emitter, Wry};
-use trajectory_core::aggregation::AggregationState;
-use trajectory_core::capture::EventNormalizer;
-use trajectory_core::live::LiveTracker;
-use trajectory_core::models::{
+use tactile_core::aggregation::AggregationState;
+use tactile_core::capture::EventNormalizer;
+use tactile_core::live::LiveTracker;
+use tactile_core::models::{
     AggregatedBucket, AppSettings, CaptureState, CaptureStatus, RangePreset, TimeRange,
 };
-use trajectory_core::stats::range_for_preset;
+use tactile_core::stats::range_for_preset;
+use tauri::menu::MenuItem;
+use tauri::{AppHandle, Emitter, Wry};
 
 pub const EVENT_STATUS: &str = "capture-status-changed";
 pub const EVENT_LIVE: &str = "input-live";

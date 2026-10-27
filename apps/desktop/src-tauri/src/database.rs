@@ -2,13 +2,13 @@ use chrono::{DateTime, Local, NaiveDate, TimeZone, Utc};
 use rusqlite::{Connection, OptionalExtension, params};
 use std::fs;
 use std::path::{Path, PathBuf};
-use thiserror::Error;
-use trajectory_core::aggregation::{HEATMAP_COLUMNS, HEATMAP_ROWS};
-use trajectory_core::models::{
+use tactile_core::aggregation::{HEATMAP_COLUMNS, HEATMAP_ROWS};
+use tactile_core::models::{
     AggregatedBucket, AppSettings, BucketMetrics, Coverage, Granularity, Heatmap, HourlyPoint,
     StatsSnapshot, TimeRange,
 };
-use trajectory_core::stats::{click_heatmap, summarize_buckets};
+use tactile_core::stats::{click_heatmap, summarize_buckets};
+use thiserror::Error;
 
 const SCHEMA_VERSION: i64 = 4;
 /// Key id that older builds stored for the macOS globe/Fn key (keycode 179).
@@ -540,7 +540,7 @@ impl Store {
     pub fn daily(
         &self,
         range: &TimeRange,
-    ) -> Result<Vec<trajectory_core::models::SeriesPoint>, StoreError> {
+    ) -> Result<Vec<tactile_core::models::SeriesPoint>, StoreError> {
         let mut statement = self.connection.prepare(
             "SELECT local_date, distance_px, key_presses, clicks, active_seconds
              FROM bucket_daily WHERE local_date BETWEEN ?1 AND ?2 ORDER BY local_date",
@@ -553,7 +553,7 @@ impl Store {
             |row| {
                 let date = NaiveDate::parse_from_str(&row.get::<_, String>(0)?, "%Y-%m-%d")
                     .unwrap_or_else(|_| Local::now().date_naive());
-                Ok(trajectory_core::models::SeriesPoint {
+                Ok(tactile_core::models::SeriesPoint {
                     date,
                     distance_px: row.get(1)?,
                     key_presses: row.get::<_, i64>(2)? as u64,
@@ -792,7 +792,7 @@ fn migrate(connection: &mut Connection) -> Result<(), StoreError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use trajectory_core::models::{AppSettings, LanguagePreference, ThemePreference};
+    use tactile_core::models::{AppSettings, LanguagePreference, ThemePreference};
 
     fn sample_bucket(day: u32) -> AggregatedBucket {
         AggregatedBucket {
@@ -958,12 +958,12 @@ mod tests {
     #[test]
     fn database_size_includes_wal_sidecar() {
         let directory = std::env::temp_dir().join(format!(
-            "trajectory-wal-size-{}-{}",
+            "tactile-wal-size-{}-{}",
             std::process::id(),
             rand::random::<u64>()
         ));
         fs::create_dir_all(&directory).unwrap();
-        let path = directory.join("trajectory.db");
+        let path = directory.join("tactile.db");
         let store = Store::open(&path).unwrap();
         fs::write(format!("{}-wal", path.display()), vec![0_u8; 4096]).unwrap();
         assert!(store.database_size() >= 4096);

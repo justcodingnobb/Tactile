@@ -124,10 +124,10 @@ The GitHub Actions workflow runs these checks on macOS and Windows.
 ### Project layout
 
 ```text
-apps/desktop/              Tauri desktop shell and SQLite store
-crates/trajectory-core/    Capture normalization, aggregation, stats, export
-crates/trajectory-platform Input hooks and platform permissions
-src/                       React dashboard and localization
+apps/desktop/               Tauri desktop shell and SQLite store
+crates/tactile-core/        Capture normalization, aggregation, stats, export
+crates/tactile-platform/    Input hooks and platform permissions
+src/                        React dashboard and localization
 ```
 
 ## Platform Notes
@@ -184,7 +184,7 @@ prereleases from `latest`.
 
 ## Data & Privacy
 
-Tactile stores only aggregate counters in `trajectory.db` under the
+Tactile stores only aggregate counters in `tactile.db` under the
 per-user application-data directory:
 
 - Minute buckets: retained for 48 hours.

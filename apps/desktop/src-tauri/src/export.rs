@@ -6,12 +6,12 @@ use chrono::{Local, Utc};
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use tactile_core::export::{build_csv_bundle, build_json_export, demo_snapshot};
+use tactile_core::models::{ExportBundle, Heatmap};
+use tactile_platform::permission_granted;
+use tactile_platform::secure_input::is_secure_input_enabled;
 use tauri::AppHandle;
 use tauri_plugin_dialog::DialogExt;
-use trajectory_core::export::{build_csv_bundle, build_json_export, demo_snapshot};
-use trajectory_core::models::{ExportBundle, Heatmap};
-use trajectory_platform::permission_granted;
-use trajectory_platform::secure_input::is_secure_input_enabled;
 use zip::write::SimpleFileOptions;
 
 const DEMO_HEATMAP_TOTAL_RATIO: f64 = 0.92;
@@ -211,7 +211,7 @@ mod tests {
     #[test]
     fn atomic_write_replaces_file_and_leaves_no_temp() {
         let directory = std::env::temp_dir().join(format!(
-            "trajectory-export-{}-{}",
+            "tactile-export-{}-{}",
             std::process::id(),
             rand::random::<u64>()
         ));

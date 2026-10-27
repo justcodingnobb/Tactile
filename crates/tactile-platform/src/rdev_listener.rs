@@ -9,8 +9,8 @@ use crate::keymap::{is_windows_right_meta, rdev_key_character, rdev_key_code};
 use std::collections::HashSet;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
-use trajectory_core::capture::CaptureError;
-use trajectory_core::models::{ModifierSet, Point, RawInputEvent};
+use tactile_core::capture::CaptureError;
+use tactile_core::models::{ModifierSet, Point, RawInputEvent};
 
 static SESSION: Mutex<Option<Shared>> = Mutex::new(None);
 static STARTED: AtomicBool = AtomicBool::new(false);
@@ -42,7 +42,7 @@ pub(crate) fn attach(shared: Shared) -> Result<(), CaptureError> {
         return Ok(());
     }
     std::thread::Builder::new()
-        .name("trajectory-input".into())
+        .name("tactile-input".into())
         .spawn(listen_forever)
         .map(|_| ())
         .map_err(|error| {

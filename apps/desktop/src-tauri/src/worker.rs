@@ -9,11 +9,11 @@ use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::{Duration, Instant};
+use tactile_core::capture::CaptureSource;
+use tactile_core::models::{CaptureStatus, RawInputEvent};
+use tactile_platform::secure_input::is_secure_input_enabled;
+use tactile_platform::{PlatformCapture, main_display_size, permission_granted};
 use tauri::{AppHandle, Emitter, Manager};
-use trajectory_core::capture::CaptureSource;
-use trajectory_core::models::{CaptureStatus, RawInputEvent};
-use trajectory_platform::secure_input::is_secure_input_enabled;
-use trajectory_platform::{PlatformCapture, main_display_size, permission_granted};
 
 const POLL_TIMEOUT: Duration = Duration::from_millis(25);
 const IDLE_SLEEP: Duration = Duration::from_millis(100);
@@ -30,10 +30,10 @@ const HOUR_RETENTION_DAYS: i64 = 90;
 
 pub fn spawn(app: AppHandle) {
     let spawned = thread::Builder::new()
-        .name("trajectory-worker".into())
+        .name("tactile-worker".into())
         .spawn(move || supervise(app.clone()));
     if let Err(error) = spawned {
-        eprintln!("trajectory: capture worker could not start: {error}");
+        eprintln!("tactile: capture worker could not start: {error}");
     }
 }
 

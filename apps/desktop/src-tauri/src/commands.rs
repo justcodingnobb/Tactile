@@ -8,13 +8,13 @@ use crate::runtime::{EVENT_SETTINGS, FaultSource, RuntimeState, StatsRequest, lo
 use crate::shortcuts::apply_shortcuts;
 use serde::Serialize;
 use std::sync::atomic::Ordering;
+use tactile_core::export::demo_snapshot;
+use tactile_core::models::{AppSettings, CaptureState, CaptureStatus, Dashboard, Heatmap};
+use tactile_platform::{permission_granted, request_permission};
 use tauri::ipc::{InvokeBody, Request};
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_opener::OpenerExt;
-use trajectory_core::export::demo_snapshot;
-use trajectory_core::models::{AppSettings, CaptureState, CaptureStatus, Dashboard, Heatmap};
-use trajectory_platform::{permission_granted, request_permission};
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
