@@ -24,8 +24,10 @@ pub enum CaptureError {
     Disconnected,
 }
 
+#[derive(Clone)]
 pub struct EventNormalizer {
     held_modifiers: HashSet<KeyId>,
+    pressed_keys: HashSet<KeyId>,
     secure_input: bool,
 }
 
@@ -33,6 +35,7 @@ impl EventNormalizer {
     pub fn new() -> Self {
         Self {
             held_modifiers: HashSet::new(),
+            pressed_keys: HashSet::new(),
             secure_input: false,
         }
     }
@@ -43,6 +46,7 @@ impl EventNormalizer {
                 self.secure_input = active;
                 if active {
                     self.held_modifiers.clear();
+                    self.pressed_keys.clear();
                 }
                 Some(InputEvent::SecureInputChanged { active })
             }
@@ -52,10 +56,11 @@ impl EventNormalizer {
                 modifiers,
                 is_repeat,
             } => {
-                if self.secure_input || is_repeat {
+                let key_id = KeyId(code);
+                let was_pressed = !self.pressed_keys.insert(key_id);
+                if self.secure_input || is_repeat || was_pressed {
                     return None;
                 }
-                let key_id = KeyId(code);
                 if crate::keys::is_modifier(code) {
                     self.held_modifiers.insert(key_id);
                     return None;
@@ -68,7 +73,9 @@ impl EventNormalizer {
                 })
             }
             RawInputEvent::KeyUp { code } => {
-                self.held_modifiers.remove(&KeyId(code));
+                let key_id = KeyId(code);
+                self.held_modifiers.remove(&key_id);
+                self.pressed_keys.remove(&key_id);
                 None
             }
             RawInputEvent::PointerMove { dx_dip, dy_dip } => {
@@ -106,19 +113,23 @@ impl EventNormalizer {
     pub fn set_secure_input(&mut self, active: bool) {
         self.secure_input = active;
         if active {
-            self.held_modifiers.clear();
+            self.reset_key_state();
         }
+    }
+
+    pub fn reset_key_state(&mut self) {
+        self.held_modifiers.clear();
+        self.pressed_keys.clear();
     }
 
     fn effective_modifiers(&self, explicit: ModifierSet) -> ModifierSet {
         let mut effective = explicit;
         for key in &self.held_modifiers {
             match key.0 {
-                0x0010 => effective.shift = true,
-                0x0011 => effective.control = true,
-                0x0012 => effective.alt = true,
-                0x0014 => effective.meta = true,
-                0x005b | 0x005c => effective.meta = true,
+                0x0010 | 0x00a1 => effective.shift = true,
+                0x0011 | 0x00a3 => effective.control = true,
+                0x0012 | 0x00a5 => effective.alt = true,
+                0x0014 | 0x00a7 | 0x005b | 0x005c => effective.meta = true,
                 _ => {}
             }
         }
@@ -151,6 +162,7 @@ pub fn status_for_state(paused: bool, normalizer: &EventNormalizer, demo: bool) 
         message: None,
         secure_input: normalizer.is_secure_input(),
         demo_mode: demo,
+        shortcut_error: None,
     }
 }
 
@@ -189,6 +201,36 @@ mod tests {
     }
 
     #[test]
+    fn duplicate_keydown_without_keyup_is_ignored() {
+        let mut normalizer = EventNormalizer::new();
+        let keydown = RawInputEvent::KeyDown {
+            code: 0x41,
+            key: Some('a'),
+            modifiers: ModifierSet::default(),
+            is_repeat: false,
+        };
+        assert!(normalizer.normalize(keydown.clone()).is_some());
+        assert_eq!(normalizer.normalize(keydown), None);
+    }
+
+    #[test]
+    fn keydown_after_keyup_is_counted_again() {
+        let mut normalizer = EventNormalizer::new();
+        let keydown = RawInputEvent::KeyDown {
+            code: 0x41,
+            key: Some('a'),
+            modifiers: ModifierSet::default(),
+            is_repeat: false,
+        };
+        assert!(normalizer.normalize(keydown.clone()).is_some());
+        assert_eq!(
+            normalizer.normalize(RawInputEvent::KeyUp { code: 0x41 }),
+            None
+        );
+        assert!(normalizer.normalize(keydown).is_some());
+    }
+
+    #[test]
     fn secure_input_clears_held_modifiers() {
         let mut normalizer = EventNormalizer::new();
         normalizer.normalize(RawInputEvent::KeyDown {
@@ -207,5 +249,21 @@ mod tests {
             }),
             None
         );
+    }
+
+    #[test]
+    fn reset_after_pause_allows_next_physical_press() {
+        let mut normalizer = EventNormalizer::new();
+        let keydown = RawInputEvent::KeyDown {
+            code: 0x41,
+            key: Some('a'),
+            modifiers: ModifierSet::default(),
+            is_repeat: false,
+        };
+        assert!(normalizer.normalize(keydown.clone()).is_some());
+
+        normalizer.reset_key_state();
+
+        assert!(normalizer.normalize(keydown).is_some());
     }
 }

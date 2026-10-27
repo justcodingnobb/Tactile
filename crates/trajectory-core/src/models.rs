@@ -242,6 +242,9 @@ pub struct CaptureState {
     pub message: Option<String>,
     pub secure_input: bool,
     pub demo_mode: bool,
+    /// Global shortcut registration problem; informational, not a capture fault.
+    #[serde(default)]
+    pub shortcut_error: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -273,7 +276,8 @@ pub struct AppSettings {
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
-            launch_at_login: true,
+            // Opt-in: registering a login item should be the user's choice.
+            launch_at_login: false,
             check_updates: false,
             theme: ThemePreference::System,
             language: LanguagePreference::System,
@@ -302,4 +306,60 @@ pub struct ShareCardConfig {
     pub show_active_seconds: bool,
     pub show_comparison: bool,
     pub show_top_key: bool,
+}
+
+/// Real-time input delta pushed to the dashboard while it is visible.
+///
+/// `seq` increases with every pulse. Counted fields are only applied by the UI
+/// when `seq` is newer than the `live_seq` of its latest [`Dashboard`]; the
+/// visual `down`/`up` lists are always applied.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct LivePulse {
+    pub seq: u64,
+    pub date: Option<NaiveDate>,
+    /// Physical keys that went down (including modifiers), for animation.
+    pub down: Vec<String>,
+    /// Physical keys that were released.
+    pub up: Vec<String>,
+    /// Counted key presses, matching the ids stored in statistics.
+    pub presses: Vec<KeyCount>,
+    pub shortcut_presses: u64,
+    pub distance_px: f64,
+    pub buttons: Vec<ButtonCount>,
+    pub click_cells: Vec<usize>,
+    pub wheel_up: f64,
+    pub wheel_down: f64,
+}
+
+impl LivePulse {
+    pub fn has_counts(&self) -> bool {
+        !self.presses.is_empty()
+            || !self.buttons.is_empty()
+            || self.distance_px > 0.0
+            || self.wheel_up > 0.0
+            || self.wheel_down > 0.0
+    }
+
+    pub fn is_empty(&self) -> bool {
+        !self.has_counts() && self.down.is_empty() && self.up.is_empty()
+    }
+
+    /// Drops counted data that a statistics snapshot already includes.
+    pub fn clear_counts(&mut self) {
+        let down = std::mem::take(&mut self.down);
+        let up = std::mem::take(&mut self.up);
+        *self = Self {
+            down,
+            up,
+            ..Self::default()
+        };
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Dashboard {
+    pub stats: StatsSnapshot,
+    pub heatmap: Heatmap,
+    /// Last pulse whose counts are already part of `stats`.
+    pub live_seq: u64,
 }

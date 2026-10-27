@@ -1,7 +1,7 @@
 import {
   ChartNoAxesCombined,
   Keyboard,
-  MousePointer2,
+  Mouse,
   Settings2,
   Sparkles,
 } from "lucide-react";
@@ -10,7 +10,7 @@ import type { Dictionary } from "../i18n";
 
 const icons = {
   overview: Sparkles,
-  mouse: MousePointer2,
+  mouse: Mouse,
   keyboard: Keyboard,
   trends: ChartNoAxesCombined,
   settings: Settings2,
@@ -42,8 +42,8 @@ export function Sidebar({
           <span />
         </div>
         <div>
-          <strong>TRAJECTORY</strong>
-          <small>轨迹</small>
+          <strong>{t.brand}</strong>
+          <small>{t.brandSub}</small>
         </div>
       </div>
       <nav aria-label="Primary">
@@ -57,7 +57,6 @@ export function Sidebar({
               onClick={() => onChange(item)}
               aria-current={section === item ? "page" : undefined}
             >
-              <span className="nav-number">{t.navNumber[item]}</span>
               <Icon size={17} strokeWidth={1.8} />
               <span>{t.nav[item]}</span>
             </button>
@@ -66,8 +65,8 @@ export function Sidebar({
       </nav>
       <div className="sidebar-foot">
         {demo && <span className="demo-flag">{t.settings.demoData}</span>}
-        <p>{t.brandEyebrow}</p>
-        <span className="version">v0.1.0 · BETA</span>
+        <p>{t.settings.localOnly}</p>
+        <span className="version">v{__APP_VERSION__}</span>
       </div>
     </aside>
   );

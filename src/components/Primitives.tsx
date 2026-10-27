@@ -4,12 +4,10 @@ import type { Language } from "../lib/format";
 import { formatRatio } from "../lib/format";
 
 export function SectionHeading({
-  kicker,
   title,
   subtitle,
   action,
 }: {
-  kicker?: string;
   title: string;
   subtitle?: string;
   action?: ReactNode;
@@ -17,7 +15,6 @@ export function SectionHeading({
   return (
     <header className="section-heading">
       <div>
-        {kicker && <p className="eyebrow">{kicker}</p>}
         <h1>{title}</h1>
         {subtitle && <p className="section-subtitle">{subtitle}</p>}
       </div>
@@ -47,19 +44,8 @@ export function Delta({
   );
 }
 
-export function MetricLabel({
-  index,
-  children,
-}: {
-  index: string;
-  children: ReactNode;
-}) {
-  return (
-    <p className="metric-label">
-      <span>{index}</span>
-      {children}
-    </p>
-  );
+export function MetricLabel({ children }: { children: ReactNode }) {
+  return <h2 className="metric-label">{children}</h2>;
 }
 
 export function EmptyState({

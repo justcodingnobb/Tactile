@@ -23,6 +23,7 @@ export interface CaptureState {
   message: string | null;
   secure_input: boolean;
   demo_mode: boolean;
+  shortcut_error?: string | null;
 }
 
 export interface TimeRange {
@@ -137,4 +138,26 @@ export interface StatsRequest {
 export interface PermissionState {
   granted: boolean;
   platform: string;
+}
+
+/** Real-time delta pushed by the capture worker while the window is visible. */
+export interface LivePulse {
+  seq: number;
+  date: string | null;
+  down: string[];
+  up: string[];
+  presses: KeyCount[];
+  shortcut_presses: number;
+  distance_px: number;
+  buttons: ButtonCount[];
+  click_cells: number[];
+  wheel_up: number;
+  wheel_down: number;
+}
+
+export interface Dashboard {
+  stats: StatsSnapshot;
+  heatmap: Heatmap;
+  /** Last live pulse already included in `stats`. */
+  live_seq: number;
 }

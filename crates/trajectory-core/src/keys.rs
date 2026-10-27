@@ -91,6 +91,7 @@ pub fn display_key_label(code: u32, character: Option<char>) -> String {
         0x006d => "Num -".into(),
         0x006b => "Num +".into(),
         0x006e => "Num .".into(),
+        0x006c => "Num Enter".into(),
         0x0060..=0x0069 => format!("Num {}", code - 0x0060),
         0x00e2 => "Intl \\".into(),
         0x0041..=0x005a => char::from_u32(code)
@@ -111,6 +112,18 @@ pub fn display_key_label(code: u32, character: Option<char>) -> String {
 
 pub fn key_id_string(code: u32) -> String {
     match code {
+        // Modifiers are never counted, but the live keyboard animates them.
+        0x0010 => "shift".into(),
+        0x00a1 => "shift_right".into(),
+        0x0011 => "control".into(),
+        0x00a3 => "control_right".into(),
+        0x0012 => "alt".into(),
+        0x00a5 => "alt_right".into(),
+        0x0014 | 0x005b => "meta".into(),
+        0x00a7 | 0x005c => "meta_right".into(),
+        0x00a0 => "capslock".into(),
+        0x00a8 => "fn".into(),
+        0xf704..=0xf70f => format!("f{}", code - 0xf703),
         0x0020 => "space".into(),
         0x000d => "enter".into(),
         0x0009 => "tab".into(),
@@ -147,6 +160,7 @@ pub fn key_id_string(code: u32) -> String {
         0x006d => "numpad_minus".into(),
         0x006b => "numpad_plus".into(),
         0x006e => "numpad_decimal".into(),
+        0x006c => "numpad_enter".into(),
         0x0060..=0x0069 => format!("numpad{}", code - 0x0060),
         0x0041..=0x005a | 0x0030..=0x0039 => char::from_u32(code)
             .unwrap()
@@ -194,6 +208,7 @@ pub fn key_code_from_id(id: &str) -> Option<u32> {
         "numpad_minus" => Some(0x006d),
         "numpad_plus" => Some(0x006b),
         "numpad_decimal" => Some(0x006e),
+        "numpad_enter" => Some(0x006c),
         id if id.len() == 1 && id.as_bytes()[0].is_ascii_alphanumeric() => {
             Some(id.as_bytes()[0].to_ascii_uppercase() as u32)
         }
@@ -212,6 +227,13 @@ pub fn key_code_from_id(id: &str) -> Option<u32> {
     }
 }
 
+/// Label shown for a stored key id; falls back to the label captured at press time.
+pub fn canonical_label(id: &str, fallback: &str) -> String {
+    key_code_from_id(id)
+        .map(|code| display_key_label(code, None))
+        .unwrap_or_else(|| fallback.to_string())
+}
+
 pub fn is_modifier(code: u32) -> bool {
     key_kind(code) == KeyKind::Modifier
 }
@@ -222,7 +244,7 @@ pub fn key_kind(code: u32) -> KeyKind {
             KeyKind::Modifier
         }
         0x0020 => KeyKind::Space,
-        0x000d => KeyKind::Enter,
+        0x000d | 0x006c => KeyKind::Enter,
         0x0009 => KeyKind::Tab,
         0x001b => KeyKind::Escape,
         0x0008 => KeyKind::Backspace,
@@ -359,7 +381,10 @@ mod tests {
             (0x0068, "numpad8"),
             (0x0069, "numpad9"),
             (0x006e, "numpad_decimal"),
+            (0x006c, "numpad_enter"),
             (0x000d, "enter"),
+            (0xf704, "f1"),
+            (0xf70f, "f12"),
         ] {
             let press = classify_key_press(KeyId(code), None, mods()).unwrap();
             assert_eq!(press.identity.id, id, "unexpected id for {code:#06x}");

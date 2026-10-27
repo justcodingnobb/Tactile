@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
   <key>NSInputMonitoringUsageDescription</key>
-  <string>Trajectory reads keyboard and pointer events only to calculate local input statistics. It never stores typed text, shortcut sequences, app names, or raw pointer paths.</string>
+  <string>Tactile reads keyboard and mouse events only to calculate local input statistics. It never stores typed text, shortcut sequences, app names, or raw mouse paths.</string>
   <key>LSUIElement</key>
   <false/>
 </dict>

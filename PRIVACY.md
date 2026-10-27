@@ -1,6 +1,6 @@
 # Privacy
 
-Trajectory is designed as an offline, local-only input statistics tool. It does
+Tactile is designed as an offline, local-only input statistics tool. It does
 not include an account system, cloud sync, advertising, analytics, or usage
 telemetry. The current beta makes no outbound network requests.
 
@@ -33,7 +33,7 @@ Operating-system backups may retain copies outside the app's control.
 ## Storage Location
 
 The database is named `trajectory.db` and lives in the operating system's
-per-user application-data directory for Trajectory. Data is protected by the
+per-user application-data directory for Tactile. Data is protected by the
 local OS account and disk permissions. The app does not add its own database
 encryption.
 

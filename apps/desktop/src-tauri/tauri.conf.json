@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Trajectory",
+  "productName": "Tactile",
   "version": "0.1.0-beta.1",
   "identifier": "com.trajectory.desktop",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Trajectory / 轨迹",
+        "title": "指痕 Tactile",
         "width": 1440,
         "height": 900,
         "minWidth": 1024,
@@ -35,8 +35,8 @@
     "targets": ["dmg", "nsis"],
     "createUpdaterArtifacts": false,
     "category": "Utility",
-    "shortDescription": "Private, local input statistics.",
-    "longDescription": "Trajectory records pointer travel, key presses, clicks and shortcuts locally. No account, cloud, content capture or usage telemetry.",
+    "shortDescription": "Private, local keyboard and mouse statistics.",
+    "longDescription": "Tactile records mouse travel, key presses, clicks and shortcuts locally. No account, cloud, content capture or usage telemetry.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

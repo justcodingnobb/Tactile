@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, Image, X } from "lucide-react";
-import { toPng } from "html-to-image";
+import { toBlob } from "html-to-image";
 import type { ShareCardConfig, StatsSnapshot } from "../types";
 import type { Dictionary } from "../i18n";
 import type { Language } from "../lib/format";
@@ -13,7 +13,7 @@ export function ShareCardDialog({
   stats,
   config,
   onConfigChange,
-  onDownload,
+  onSave,
   language,
   dictionary: t,
   busy,
@@ -23,29 +23,40 @@ export function ShareCardDialog({
   stats: StatsSnapshot;
   config: ShareCardConfig;
   onConfigChange: (config: ShareCardConfig) => void;
-  onDownload: (blob: Blob) => Promise<void>;
+  onSave: (png: Uint8Array) => Promise<void>;
   language: Language;
   dictionary: Dictionary;
   busy: boolean;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    setError(null);
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
   if (!open) {
     return null;
   }
   const download = async () => {
-    if (!cardRef.current) {
+    if (!cardRef.current || busy) {
       return;
     }
     setError(null);
     try {
-      const dataUrl = await toPng(cardRef.current, {
+      const blob = await toBlob(cardRef.current, {
         pixelRatio: 10 / 3,
         cacheBust: true,
         backgroundColor: "#171713",
       });
-      const response = await fetch(dataUrl);
-      await onDownload(await response.blob());
+      if (!blob) {
+        throw new Error("render failed");
+      }
+      await onSave(new Uint8Array(await blob.arrayBuffer()));
     } catch {
       setError(t.errors.generic);
     }
@@ -105,7 +116,7 @@ export function ShareCardDialog({
             </label>
             <p className="fine-print">
               {language === "zh"
-                ? "分享卡只包含数字与抽象图形，不包含轨迹、快捷键序列或应用信息。"
+                ? "分享卡只包含数字与抽象图形，不包含移动路径、快捷键序列或应用信息。"
                 : "This card contains numbers and abstract geometry only. No path, shortcut sequence or app identity is included."}
             </p>
             {error && <p className="form-error">{error}</p>}
@@ -132,14 +143,38 @@ export function ExportMenu({
   t: Dictionary;
 }) {
   const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const onPointer = (event: MouseEvent) => {
+      if (!root.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onPointer);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
   return (
-    <div className="export-menu">
-      <button className="outline-button" type="button" onClick={() => setOpen(!open)}>
+    <div className="export-menu" ref={root}>
+      <button
+        className="outline-button"
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+      >
         <Download size={15} />
         {t.actions.export}
       </button>
       {open && (
-        <div className="export-popover">
+        <div className="export-popover" role="menu">
           <button type="button" onClick={() => { setOpen(false); onJson(); }}>
             <strong>{t.actions.exportJson}</strong>
             <span>schema v1 · .json</span>
