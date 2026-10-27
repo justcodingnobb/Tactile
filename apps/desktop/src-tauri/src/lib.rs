@@ -9,8 +9,8 @@ mod worker;
 use database::Store;
 use runtime::{RuntimeState, lock};
 use std::sync::atomic::Ordering;
+use tactile_platform::main_display_size;
 use tauri::{AppHandle, Manager, RunEvent, WindowEvent};
-use trajectory_platform::main_display_size;
 
 /// Opens the database, falling back to an in-memory store so a broken or
 /// locked file degrades to "not saved" instead of a crash on launch.
@@ -19,7 +19,7 @@ fn open_store(app: &AppHandle) -> (Store, Option<String>) {
         .path()
         .app_data_dir()
         .map_err(|error| error.to_string())
-        .and_then(|dir| Store::open(dir.join("trajectory.db")).map_err(|error| error.to_string()));
+        .and_then(|dir| Store::open(dir.join("tactile.db")).map_err(|error| error.to_string()));
     match opened {
         Ok(store) => (store, None),
         Err(error) => match Store::open_in_memory() {
@@ -42,11 +42,11 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let state = handle.state::<RuntimeState>();
     // The tray is a convenience; the app still works if it cannot be created.
     if let Err(error) = shortcuts::create_tray(&handle) {
-        eprintln!("trajectory: tray unavailable: {error}");
+        eprintln!("tactile: tray unavailable: {error}");
     }
     let settings = lock(&state.settings).clone();
     if let Err(error) = commands::set_autostart(&handle, settings.launch_at_login) {
-        eprintln!("trajectory: autostart: {error}");
+        eprintln!("tactile: autostart: {error}");
     }
     if let Err(error) = shortcuts::apply_shortcuts(&handle, settings.shortcuts_enabled) {
         state.set_shortcut_error(Some(error));
@@ -60,7 +60,7 @@ fn on_exit(app: &AppHandle) {
     if let Some(state) = app.try_state::<RuntimeState>() {
         state.exiting.store(true, Ordering::SeqCst);
         if let Err(error) = flush::flush(&state) {
-            eprintln!("trajectory: final flush failed: {error}");
+            eprintln!("tactile: final flush failed: {error}");
         }
     }
 }
@@ -108,7 +108,7 @@ pub fn run() {
     let app = match app {
         Ok(app) => app,
         Err(error) => {
-            eprintln!("trajectory: failed to start: {error}");
+            eprintln!("tactile: failed to start: {error}");
             std::process::exit(1);
         }
     };

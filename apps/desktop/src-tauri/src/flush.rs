@@ -1,8 +1,8 @@
 //! Moves aggregated buckets into SQLite.
 
 use crate::runtime::{EVENT_FLUSHED, EVENT_LIVE, FaultSource, RuntimeState, lock};
+use tactile_core::models::CaptureStatus;
 use tauri::Emitter;
-use trajectory_core::models::CaptureStatus;
 
 /// Writes everything aggregated so far. On failure the buckets are kept for
 /// the next attempt. Returns whether data was written.

@@ -118,10 +118,10 @@ GitHub Actions 会在 macOS 和 Windows 上执行这些检查。
 ### 项目结构
 
 ```text
-apps/desktop/              Tauri 桌面外壳与 SQLite 存储
-crates/trajectory-core/    输入标准化、聚合、统计与导出
-crates/trajectory-platform 平台输入钩子与权限
-src/                       React 仪表盘与多语言
+apps/desktop/               Tauri 桌面外壳与 SQLite 存储
+crates/tactile-core/        输入标准化、聚合、统计与导出
+crates/tactile-platform/    平台输入钩子与权限
+src/                        React 仪表盘与多语言
 ```
 
 ## 平台说明
@@ -171,7 +171,7 @@ GitHub 的 `latest` 不包含草稿或预发布版本。
 
 ## 数据与隐私
 
-指痕只在用户应用数据目录下的 `trajectory.db` 中保存聚合计数：
+指痕只在用户应用数据目录下的 `tactile.db` 中保存聚合计数：
 
 - 分钟桶：保留 48 小时。
 - 小时聚合：保留 90 天。

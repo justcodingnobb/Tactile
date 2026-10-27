@@ -3,8 +3,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, channel};
 use std::thread::JoinHandle;
 use std::time::Duration;
-use trajectory_core::capture::{CaptureError, CaptureSource};
-use trajectory_core::models::RawInputEvent;
+use tactile_core::capture::{CaptureError, CaptureSource};
+use tactile_core::models::RawInputEvent;
 
 mod keymap;
 #[cfg(target_os = "macos")]
@@ -142,11 +142,11 @@ fn spawn_listeners(shared: Shared) -> Result<Vec<JoinHandle<()>>, CaptureError> 
     let pointer = shared;
     Ok(vec![
         spawn(
-            "trajectory-keyboard",
+            "tactile-keyboard",
             Box::new(move || macos::run_tap(keyboard, macos::KeyboardTap::default())),
         )?,
         spawn(
-            "trajectory-pointer",
+            "tactile-pointer",
             Box::new(move || macos::run_tap(pointer, macos::PointerTap::default())),
         )?,
     ])
@@ -211,7 +211,7 @@ mod tests {
     use crate::rdev_listener::{map_rdev_event, update_modifiers_for_platform};
     use std::collections::HashSet;
     use std::time::SystemTime;
-    use trajectory_core::models::ModifierSet;
+    use tactile_core::models::ModifierSet;
 
     fn event(event_type: rdev::EventType) -> rdev::Event {
         rdev::Event {

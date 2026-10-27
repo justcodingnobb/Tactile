@@ -1,5 +1,5 @@
 [package]
-name = "trajectory-core"
+name = "tactile-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

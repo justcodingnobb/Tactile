@@ -22,7 +22,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         ],
     )?;
     app.state::<RuntimeState>().attach_tray_pause(pause);
-    let mut builder = TrayIconBuilder::with_id("trajectory-tray")
+    let mut builder = TrayIconBuilder::with_id("tactile-tray")
         .tooltip("指痕 Tactile")
         .menu(&menu)
         .show_menu_on_left_click(false)

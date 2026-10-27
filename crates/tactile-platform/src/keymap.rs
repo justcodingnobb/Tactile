@@ -1,4 +1,4 @@
-//! Maps rdev keys to the stable virtual key codes used by trajectory-core.
+//! Maps rdev keys to the stable virtual key codes used by tactile-core.
 
 pub(crate) fn is_windows_right_meta(key: rdev::Key, windows: bool) -> bool {
     windows && matches!(key, rdev::Key::Unknown(0x5c))

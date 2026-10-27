@@ -37,15 +37,15 @@ Operating-system backups may retain copies outside the app's control.
 
 ## Storage Location
 
-The database is named `trajectory.db` and lives in the operating system's
+The database is named `tactile.db` and lives in the operating system's
 per-user application-data directory for Tactile. Data is protected by the
 local OS account and disk permissions. The app does not add its own database
 encryption.
 
 On Windows, the default location is typically under
-`%APPDATA%\com.trajectory.desktop` or `%LOCALAPPDATA%\com.trajectory.desktop`.
+`%APPDATA%\com.tactile.desktop` or `%LOCALAPPDATA%\com.tactile.desktop`.
 On macOS, it is typically under
-`~/Library/Application Support/com.trajectory.desktop`.
+`~/Library/Application Support/com.tactile.desktop`.
 
 ## Platform Limitations
 

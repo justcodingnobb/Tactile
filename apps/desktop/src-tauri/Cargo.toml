@@ -1,20 +1,20 @@
 [package]
-name = "trajectory-desktop"
+name = "tactile-desktop"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "Tactile local input statistics"
 
 [lib]
-name = "trajectory_desktop_lib"
+name = "tactile_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2.7.4", features = [] }
 
 [dependencies]
-trajectory-core = { path = "../../../crates/trajectory-core" }
-trajectory-platform = { path = "../../../crates/trajectory-platform" }
+tactile-core = { path = "../../../crates/tactile-core" }
+tactile-platform = { path = "../../../crates/tactile-platform" }
 tauri = { version = "2.12.5", features = ["tray-icon", "image-png"] }
 tauri-plugin-autostart = "2.7.0"
 tauri-plugin-dialog = "2.8.3"
