@@ -4022,7 +4022,7 @@ dependencies = [
 
 [[package]]
 name = "tactile-core"
-version = "1.0.0-beta.2"
+version = "1.0.0-beta.3"
 dependencies = [
  "chrono",
  "serde",
@@ -4032,7 +4032,7 @@ dependencies = [
 
 [[package]]
 name = "tactile-desktop"
-version = "1.0.0-beta.2"
+version = "1.0.0-beta.3"
 dependencies = [
  "chrono",
  "rand",
@@ -4056,7 +4056,7 @@ dependencies = [
 
 [[package]]
 name = "tactile-platform"
-version = "1.0.0-beta.2"
+version = "1.0.0-beta.3"
 dependencies = [
  "objc2-core-foundation",
  "objc2-core-graphics",
