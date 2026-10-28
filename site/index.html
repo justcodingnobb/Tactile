@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#ece9df" />
+    <script>
+      (() => {
+        let mode = "system";
+        try {
+          const saved = localStorage.getItem("tactile-theme");
+          if (saved === "light" || saved === "dark" || saved === "system") {
+            mode = saved;
+          }
+        } catch {
+          // Use the system preference when storage is unavailable.
+        }
+        const dark =
+          mode === "dark" ||
+          (mode === "system" &&
+            window.matchMedia?.("(prefers-color-scheme: dark)").matches);
+        const root = document.documentElement;
+        root.dataset.theme = dark ? "dark" : "light";
+        root.dataset.themeMode = mode;
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+        if (themeColor) {
+          themeColor.content = dark ? "#171713" : "#ece9df";
+        }
+      })();
+    </script>
+    <meta
+      name="description"
+      data-i18n-meta="metaDescription"
+      content="指痕 Tactile 是一款本地优先的键盘与鼠标活动仪表盘。只记录聚合后的操作节奏，不记录输入内容，数据保存在你的电脑里。"
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://justcodingnobb.github.io/Tactile/" />
+    <link rel="icon" href="./favicon.ico" sizes="any" />
+    <link rel="icon" href="./assets/icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="./assets/icon.png" />
+    <link rel="stylesheet" href="./assets/styles.css" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" data-i18n-meta="ogLocale" content="zh_CN" />
+    <meta
+      property="og:title"
+      data-i18n-meta="ogTitle"
+      content="指痕 Tactile — 只记节奏，不记文字"
+    />
+    <meta
+      property="og:description"
+      data-i18n-meta="ogDescription"
+      content="本地优先的键盘与鼠标活动仪表盘。数据留在电脑里，输入内容从不被记录。"
+    />
+    <meta property="og:url" content="https://justcodingnobb.github.io/Tactile/" />
+    <meta property="og:site_name" content="Tactile / 指痕" />
+    <meta
+      property="og:image"
+      content="https://justcodingnobb.github.io/Tactile/assets/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      data-i18n-meta="ogTitle"
+      content="指痕 Tactile — 只记节奏，不记文字"
+    />
+    <meta
+      name="twitter:description"
+      data-i18n-meta="ogDescription"
+      content="本地优先的键盘与鼠标活动仪表盘。数据留在电脑里，输入内容从不被记录。"
+    />
+    <meta
+      name="twitter:image"
+      content="https://justcodingnobb.github.io/Tactile/assets/og-image.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      data-i18n-meta="imageAlt"
+      content="指痕 Tactile：只记节奏，不记文字。"
+    />
+
+    <title data-i18n="pageTitle">指痕 Tactile — 只记节奏，不记文字</title>
+    <script type="application/ld+json" id="structured-data">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Tactile",
+        "alternateName": "指痕",
+        "description": "本地优先的键盘与鼠标活动仪表盘，只保存聚合统计，不记录输入内容。",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "macOS, Windows",
+        "isAccessibleForFree": true,
+        "license": "https://www.apache.org/licenses/LICENSE-2.0",
+        "codeRepository": "https://github.com/justcodingnobb/Tactile",
+        "url": "https://justcodingnobb.github.io/Tactile/"
+      }
+    </script>
+    <script type="module" src="./assets/main.js"></script>
+  </head>
+  <body data-landing>
+    <a class="skip-link" href="#main" data-i18n="skip">跳到主要内容</a>
+
+    <div class="page-grid" aria-hidden="true"></div>
+    <header class="site-header">
+      <div class="nav-shell">
+        <a
+          class="brand"
+          href="#top"
+          aria-label="指痕 Tactile 首页"
+          data-i18n-aria-label="brandHomeLabel"
+        >
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+          <span class="brand-type">
+            <strong data-i18n="brandName">指痕</strong>
+            <small>TACTILE</small>
+          </span>
+        </a>
+
+        <nav class="site-nav" aria-label="主要导航" data-i18n-aria-label="mainNavLabel">
+          <a href="#features" data-i18n="nav.features">能力</a>
+          <a href="#instrument" data-i18n="nav.interface">界面</a>
+          <a href="#privacy" data-i18n="nav.privacy">隐私</a>
+          <a href="#download" data-i18n="nav.download">下载</a>
+        </nav>
+
+        <div class="nav-actions">
+          <span class="version-chip">BETA <span data-app-version></span></span>
+          <div
+            class="theme-segmented"
+            data-theme-options
+            role="radiogroup"
+            aria-label="页面主题"
+            data-i18n-aria-label="themeGroup"
+          >
+            <button
+              type="button"
+              role="radio"
+              data-theme-value="light"
+              aria-checked="false"
+              tabindex="-1"
+            >
+              <span data-i18n="theme.light">亮</span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              data-theme-value="dark"
+              aria-checked="false"
+              tabindex="-1"
+            >
+              <span data-i18n="theme.dark">暗</span>
+            </button>
+            <button
+              class="is-active"
+              type="button"
+              role="radio"
+              data-theme-value="system"
+              aria-checked="true"
+              tabindex="0"
+            >
+              <span data-i18n="theme.system">跟随系统</span>
+            </button>
+          </div>
+          <div
+            class="language-segmented"
+            data-language-options
+            role="radiogroup"
+            aria-label="页面语言"
+            data-i18n-aria-label="languageGroup"
+          >
+            <button
+              class="is-active"
+              type="button"
+              role="radio"
+              data-language-value="zh"
+              aria-checked="true"
+              tabindex="0"
+            >
+              <span data-i18n="language.zh">中文</span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              data-language-value="en"
+              aria-checked="false"
+              tabindex="-1"
+            >
+              <span data-i18n="language.en">EN</span>
+            </button>
+          </div>
+          <a class="nav-download" href="#download" data-i18n="getApp">获取应用</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow reveal">
+            <span class="eyebrow-index">01</span>
+            LOCAL-FIRST INPUT INSTRUMENT
+          </p>
+          <h1 id="hero-title" class="reveal">
+            <span data-i18n="hero.line1Prefix">只记</span
+            ><span class="hero-accent-phrase"
+              ><span class="accent-word" data-i18n="hero.accent">节奏</span
+              ><span data-i18n="hero.line1Suffix">，</span></span
+            ><br />
+            <span data-i18n="hero.line2">不记文字。</span>
+          </h1>
+          <p class="hero-lede reveal" data-i18n="hero.lede">
+            指痕把你的键盘与鼠标动作变成可见的节奏：按键热图、移动距离、点击地形与趋势对比。
+            它不知道你输入了什么，也不需要知道。
+          </p>
+          <div class="hero-actions reveal">
+            <a
+              class="button button-primary"
+              href="https://github.com/justcodingnobb/Tactile/releases/latest"
+            >
+              <span data-i18n="hero.download">下载 Beta</span>
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M4 10h11M11 6l4 4-4 4" />
+              </svg>
+            </a>
+            <a class="button button-ghost" href="#demo">
+              <span data-i18n="hero.try">试按一下</span>
+              <span class="key-hint">⌘ K</span>
+            </a>
+          </div>
+          <dl
+            class="proof-list reveal"
+            aria-label="产品事实"
+            data-i18n-aria-label="hero.proofLabel"
+          >
+            <div>
+              <dt>0</dt>
+              <dd data-i18n="hero.proof1">段输入文本被保存</dd>
+            </div>
+            <div>
+              <dt>100%</dt>
+              <dd data-i18n="hero.proof2">统计数据留在本机</dd>
+            </div>
+            <div>
+              <dt>2</dt>
+              <dd data-i18n="hero.proof3">macOS 与 Windows</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div
+          class="instrument reveal"
+          aria-label="交互式输入仪表盘演示"
+          data-i18n-aria-label="hero.instrumentLabel"
+        >
+          <div class="instrument-topline">
+            <span><i class="status-light"></i> LIVE DEMO</span>
+            <span>NO DATA LEAVES THIS PAGE</span>
+            <span>001 / 003</span>
+          </div>
+
+          <div class="instrument-screen">
+            <div class="live-readout">
+              <div>
+                <span>LAST INPUT</span>
+                <output data-key-label aria-live="polite">—</output>
+              </div>
+              <div class="readout-count">
+                <span>SESSION KEYS</span>
+                <output data-key-count>0</output>
+              </div>
+            </div>
+
+            <div
+              class="keyboard-demo"
+              role="group"
+              aria-label="可试按的键盘热图"
+              data-i18n-aria-label="hero.keyboardLabel"
+            >
+              <div class="keyboard-row">
+                <kbd data-code="Escape" class="key key-small">ESC</kbd>
+                <kbd data-code="Digit1" class="key">1</kbd>
+                <kbd data-code="Digit2" class="key">2</kbd>
+                <kbd data-code="Digit3" class="key">3</kbd>
+                <kbd data-code="Digit4" class="key">4</kbd>
+                <kbd data-code="Digit5" class="key">5</kbd>
+                <kbd data-code="Digit6" class="key">6</kbd>
+                <kbd data-code="Digit7" class="key">7</kbd>
+                <kbd data-code="Digit8" class="key">8</kbd>
+                <kbd data-code="Digit9" class="key">9</kbd>
+                <kbd data-code="Digit0" class="key">0</kbd>
+                <kbd data-code="Minus" class="key">−</kbd>
+                <kbd data-code="Equal" class="key">=</kbd>
+                <kbd data-code="Backspace" class="key key-wide">DEL</kbd>
+              </div>
+              <div class="keyboard-row">
+                <kbd data-code="Tab" class="key key-wide">TAB</kbd>
+                <kbd data-code="KeyQ" class="key">Q</kbd>
+                <kbd data-code="KeyW" class="key">W</kbd>
+                <kbd data-code="KeyE" class="key">E</kbd>
+                <kbd data-code="KeyR" class="key">R</kbd>
+                <kbd data-code="KeyT" class="key">T</kbd>
+                <kbd data-code="KeyY" class="key">Y</kbd>
+                <kbd data-code="KeyU" class="key">U</kbd>
+                <kbd data-code="KeyI" class="key">I</kbd>
+                <kbd data-code="KeyO" class="key">O</kbd>
+                <kbd data-code="KeyP" class="key">P</kbd>
+                <kbd data-code="BracketLeft" class="key">[</kbd>
+                <kbd data-code="BracketRight" class="key">]</kbd>
+                <kbd data-code="Backslash" class="key">\</kbd>
+              </div>
+              <div class="keyboard-row">
+                <kbd data-code="CapsLock" class="key key-wide">CAPS</kbd>
+                <kbd data-code="KeyA" class="key key-hot">A</kbd>
+                <kbd data-code="KeyS" class="key">S</kbd>
+                <kbd data-code="KeyD" class="key">D</kbd>
+                <kbd data-code="KeyF" class="key">F</kbd>
+                <kbd data-code="KeyG" class="key">G</kbd>
+                <kbd data-code="KeyH" class="key">H</kbd>
+                <kbd data-code="KeyJ" class="key">J</kbd>
+                <kbd data-code="KeyK" class="key">K</kbd>
+                <kbd data-code="KeyL" class="key">L</kbd>
+                <kbd data-code="Semicolon" class="key">;</kbd>
+                <kbd data-code="Quote" class="key">'</kbd>
+                <kbd data-code="Enter" class="key key-wide key-accent">ENTER</kbd>
+              </div>
+              <div class="keyboard-row">
+                <kbd data-code="ShiftLeft" class="key key-wide">SHIFT</kbd>
+                <kbd data-code="KeyZ" class="key">Z</kbd>
+                <kbd data-code="KeyX" class="key">X</kbd>
+                <kbd data-code="KeyC" class="key">C</kbd>
+                <kbd data-code="KeyV" class="key">V</kbd>
+                <kbd data-code="KeyB" class="key">B</kbd>
+                <kbd data-code="KeyN" class="key">N</kbd>
+                <kbd data-code="KeyM" class="key">M</kbd>
+                <kbd data-code="Comma" class="key">,</kbd>
+                <kbd data-code="Period" class="key">.</kbd>
+                <kbd data-code="Slash" class="key">/</kbd>
+                <kbd data-code="ShiftRight" class="key key-wide">SHIFT</kbd>
+              </div>
+              <div class="keyboard-row">
+                <kbd data-code="ControlLeft" class="key">CTRL</kbd>
+                <kbd data-code="AltLeft" class="key">ALT</kbd>
+                <kbd data-code="MetaLeft" class="key">CMD</kbd>
+                <kbd data-code="Space" class="key key-space">SPACE</kbd>
+                <kbd data-code="MetaRight" class="key">CMD</kbd>
+                <kbd data-code="ArrowLeft" class="key">←</kbd>
+                <kbd data-code="ArrowDown" class="key">↓</kbd>
+                <kbd data-code="ArrowRight" class="key">→</kbd>
+              </div>
+            </div>
+          </div>
+
+          <div class="heatmap-demo" id="demo">
+            <div class="heatmap-heading">
+              <div>
+                <span class="micro-label">CLICK TERRAIN / 24 × 16</span>
+                <strong data-i18n="hero.heatmapTitle">在屏幕上留下一个点</strong>
+              </div>
+              <div class="heatmap-total">
+                <output data-heatmap-total>0</output>
+                <span>CLICKS</span>
+              </div>
+            </div>
+            <div
+              class="click-heatmap"
+              data-heatmap
+              data-columns="24"
+              data-rows="16"
+              aria-label="点击热区演示，点击任意格增加一次"
+              data-i18n-aria-label="hero.heatmapLabel"
+            ></div>
+            <p class="demo-note">
+              <span aria-hidden="true">↳</span>
+              <span data-i18n="hero.demoNote"
+                >点一下热区。这里只增加浏览器里的演示计数，不上传任何内容。</span
+              >
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="fact-band"
+        aria-label="核心特征"
+        data-i18n-aria-label="facts.label"
+      >
+        <div class="fact-track">
+          <span>NO TYPED TEXT</span><i></i>
+          <span>NO ACCOUNT</span><i></i>
+          <span>NO CLOUD SYNC</span><i></i>
+          <span>LOCAL SQLITE</span><i></i>
+          <span>OPEN SOURCE</span>
+        </div>
+      </section>
+
+      <section class="section features" id="features" aria-labelledby="features-title">
+        <div class="section-heading reveal">
+          <p class="eyebrow">
+            <span class="eyebrow-index">02</span>
+            WHAT IT READS
+          </p>
+          <h2 id="features-title">
+            <span data-i18n="features.titleLine1">把动作，</span><br />
+            <span data-i18n="features.titleLine2">变成形状。</span>
+          </h2>
+          <p data-i18n="features.description">
+            它读取的是按键次数、鼠标位移和点击分布。不是内容，不是应用，也不是你说了什么。
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card feature-activity reveal">
+            <div class="card-topline">
+              <span class="micro-label">ACTIVITY / 24H</span>
+              <span class="micro-label">LIVE RHYTHM</span>
+            </div>
+            <div class="activity-chart" aria-hidden="true">
+              <div class="chart-y">
+                <span>24</span><span>18</span><span>12</span><span>06</span><span>00</span>
+              </div>
+              <div class="chart-bars">
+                <i style="--h: 13%"></i><i style="--h: 18%"></i><i style="--h: 9%"></i>
+                <i style="--h: 25%"></i><i style="--h: 43%"></i><i style="--h: 74%"></i>
+                <i style="--h: 63%"></i><i style="--h: 91%"></i><i style="--h: 57%"></i>
+                <i style="--h: 84%"></i><i style="--h: 46%"></i><i style="--h: 68%"></i>
+                <i style="--h: 31%"></i><i style="--h: 52%"></i><i style="--h: 38%"></i>
+                <i style="--h: 76%"></i><i style="--h: 92%"></i><i style="--h: 64%"></i>
+                <i style="--h: 49%"></i><i style="--h: 71%"></i><i style="--h: 27%"></i>
+                <i style="--h: 16%"></i><i style="--h: 10%"></i><i style="--h: 6%"></i>
+              </div>
+            </div>
+            <div class="feature-copy">
+              <span class="feature-number">01</span>
+              <div>
+                <h3 data-i18n="feature.activity.title">看见一天的节奏</h3>
+                <p data-i18n="feature.activity.body">
+                  今天、本周、本月或自定义时间范围，把高频时段和前后周期放在一起看。
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <article class="feature-card feature-keyboard reveal">
+            <div class="card-topline">
+              <span class="micro-label">KEYBOARD TERRAIN</span>
+              <span class="micro-label">KEY_PRESSES</span>
+            </div>
+            <div class="mini-keyboard" aria-hidden="true">
+              <span>Q</span><span>W</span><span class="hot">E</span><span>R</span><span>T</span>
+              <span>Y</span><span>U</span><span>I</span><span>O</span><span>P</span>
+              <span class="wide">A</span><span class="hot">S</span><span>D</span><span class="hot">F</span><span>G</span>
+              <span>H</span><span>J</span><span>K</span><span>L</span><span class="wide">;</span>
+              <span class="wide">SHIFT</span><span>Z</span><span>X</span><span>C</span><span class="hot">V</span>
+              <span>B</span><span>N</span><span>M</span><span class="wide">SPACE</span>
+            </div>
+            <div class="feature-copy">
+              <span class="feature-number">02</span>
+              <div>
+                <h3 data-i18n="feature.keyboard.title">键盘地形</h3>
+                <p data-i18n="feature.keyboard.body">
+                  按物理键位统计按键次数。窗口打开时，每个按键会实时点亮。
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <article class="feature-card feature-privacy reveal">
+            <span class="micro-label">NETWORK REQUESTS</span>
+            <strong class="giant-number">01</strong>
+            <div class="feature-copy">
+              <span class="feature-number">03</span>
+              <div>
+                <h3 data-i18n="feature.privacy.title">唯一的网络请求，是更新检查</h3>
+                <p data-i18n="feature.privacy.body">
+                  不发送统计数据，不携带设备标识，并且可以在设置中关闭。
+                </p>
+              </div>
+            </div>
+            <div class="privacy-stamp">OPTIONAL<br />UPDATE CHECK</div>
+          </article>
+
+          <article class="feature-card feature-mouse reveal">
+            <div class="card-topline">
+              <span class="micro-label">POINTER TRAVEL</span>
+              <span class="micro-label">THIS WEEK</span>
+            </div>
+            <div class="mouse-distance">
+              <strong>18.42</strong>
+              <span>KM</span>
+            </div>
+            <svg class="route-line" viewBox="0 0 620 118" aria-hidden="true">
+              <path d="M3 91C55 86 57 22 119 31s57 66 116 52 73-73 132-45 54 74 116 49 58-62 131-41" />
+              <circle cx="4" cy="91" r="4" />
+              <circle cx="614" cy="45" r="4" />
+            </svg>
+            <div class="feature-copy">
+              <span class="feature-number">04</span>
+              <div>
+                <h3 data-i18n="feature.mouse.title">鼠标走过的路</h3>
+                <p data-i18n="feature.mouse.body">
+                  移动距离、按键构成、滚轮方向和点击热区，组合成一张操作地图。
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <article class="feature-card feature-export reveal">
+            <span class="micro-label">TAKE IT WITH YOU</span>
+            <div class="share-card-mini" aria-hidden="true">
+              <div class="share-card-head">
+                <span data-i18n="shareCard.head">指痕 / WEEK 42</span>
+                <span>LOCAL ONLY</span>
+              </div>
+              <strong>18.42<small>KM</small></strong>
+              <div class="share-card-bars">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <div class="share-card-foot">
+                <span>96,240 KEYS</span>
+                <span>42,118 CLICKS</span>
+              </div>
+            </div>
+            <div class="feature-copy">
+              <span class="feature-number">05</span>
+              <div>
+                <h3 data-i18n="feature.export.title">数据属于你</h3>
+                <p data-i18n="feature.export.body">
+                  导出 JSON、CSV 或一张分享卡。也可以随时清除本地统计。
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="instrument-section" id="instrument" aria-labelledby="instrument-title">
+        <div class="section-heading section-heading-light reveal">
+          <p class="eyebrow">
+            <span class="eyebrow-index">03</span>
+            THE DASHBOARD
+          </p>
+          <h2 id="instrument-title">
+            <span data-i18n="dashboard.titleLine1">你的一天，</span><br />
+            <span data-i18n="dashboard.titleLine2">有迹可循。</span>
+          </h2>
+          <p data-i18n="dashboard.description">
+            不是排行榜，也不是效率审判。只是一个足够安静、足够准确的本地仪表盘。
+          </p>
+        </div>
+
+        <div
+          class="dashboard-frame reveal"
+          aria-label="指痕仪表盘界面预览"
+          data-i18n-aria-label="dashboard.frameLabel"
+        >
+          <div class="window-bar">
+            <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <span data-i18n="dashboard.windowTitle">指痕 TACTILE / OVERVIEW</span>
+            <span>LOCAL DATABASE</span>
+          </div>
+          <div class="dashboard-body">
+            <aside
+              class="dashboard-sidebar"
+              aria-label="界面预览导航"
+              data-i18n-aria-label="dashboard.sidebarLabel"
+            >
+              <div class="dashboard-brand">
+                <span class="brand-mark small" aria-hidden="true"><i></i><i></i></span>
+                <strong>TACTILE</strong>
+              </div>
+              <div class="dashboard-nav">
+                <span class="active" data-i18n="dashboard.nav.overview">总览</span>
+                <span data-i18n="dashboard.nav.mouse">鼠标</span>
+                <span data-i18n="dashboard.nav.keyboard">键盘</span>
+                <span data-i18n="dashboard.nav.trends">趋势</span>
+                <span data-i18n="dashboard.nav.settings">设置</span>
+              </div>
+              <div class="sidebar-foot">
+                <i class="status-light"></i>
+                <span data-i18n="dashboard.status">采集正常</span>
+              </div>
+            </aside>
+            <div class="dashboard-main">
+              <div class="dashboard-head">
+                <div>
+                  <span class="micro-label" data-i18n="dashboard.weekOverview"
+                    >本周概览</span
+                  >
+                  <strong>10.20 — 10.26</strong>
+                </div>
+                <span class="dashboard-demo-badge" data-i18n="dashboard.demoData"
+                  >演示数据</span
+                >
+              </div>
+              <div class="dashboard-primary">
+                <div class="distance-block">
+                  <span class="micro-label" data-i18n="dashboard.pointerDistance"
+                    >鼠标移动距离</span
+                  >
+                  <div><strong>18.42</strong><span>KM</span></div>
+                  <p data-i18n="dashboard.pointerDelta">比上一周期多 12.4%</p>
+                </div>
+                <div class="dashboard-heatmap-panel">
+                  <div class="dashboard-panel-head">
+                    <span data-i18n="dashboard.clickHeatmap">点击热区</span>
+                    <small data-i18n="dashboard.clickCount">42,118 次</small>
+                  </div>
+                  <div class="dashboard-heatmap" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
+              <div class="dashboard-metrics">
+                <div>
+                  <span data-i18n="dashboard.keys">按键</span><strong>96.2K</strong
+                  ><small>+8.1%</small>
+                </div>
+                <div>
+                  <span data-i18n="dashboard.clicks">点击</span><strong>42.1K</strong
+                  ><small>+3.6%</small>
+                </div>
+                <div>
+                  <span data-i18n="dashboard.activeTime">活跃时长</span
+                  ><strong>28h 16m</strong><small>−1.2%</small>
+                </div>
+                <div class="accent">
+                  <span data-i18n="dashboard.shortcuts">快捷键占比</span
+                  ><strong>14.8%</strong
+                  ><small data-i18n="dashboard.shortcutCount">24.1K 次</small>
+                </div>
+              </div>
+              <div class="dashboard-lower">
+                <div>
+                  <span class="micro-label" data-i18n="dashboard.hourlyActivity"
+                    >全天活跃分布</span
+                  >
+                  <div class="dashboard-bars" aria-hidden="true">
+                    <i style="--h: 10%"></i><i style="--h: 18%"></i><i style="--h: 24%"></i>
+                    <i style="--h: 12%"></i><i style="--h: 36%"></i><i style="--h: 61%"></i>
+                    <i style="--h: 82%"></i><i style="--h: 55%"></i><i style="--h: 78%"></i>
+                    <i style="--h: 93%"></i><i style="--h: 69%"></i><i style="--h: 48%"></i>
+                  </div>
+                </div>
+                <div>
+                  <span class="micro-label" data-i18n="dashboard.topKeys"
+                    >高频键位</span
+                  >
+                  <div class="key-ranking" aria-hidden="true">
+                    <span><b>SPACE</b><i style="--w: 92%"></i><small>8.2K</small></span>
+                    <span><b>E</b><i style="--w: 72%"></i><small>6.4K</small></span>
+                    <span><b>T</b><i style="--w: 57%"></i><small>5.1K</small></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="privacy-section" id="privacy" aria-labelledby="privacy-title">
+        <div class="privacy-heading reveal">
+          <p class="eyebrow">
+            <span class="eyebrow-index">04</span>
+            LOCAL BY DESIGN
+          </p>
+          <h2 id="privacy-title">
+            <span data-i18n="privacy.titleLine1">数据</span><br />
+            <span data-i18n="privacy.titleLine2">不出门。</span>
+          </h2>
+          <p data-i18n="privacy.description">
+            指痕没有账号系统、云端同步、广告或使用遥测。数据库就在你的电脑里，
+            由你的系统账户和磁盘权限保护。
+          </p>
+        </div>
+
+        <div
+          class="data-flow reveal"
+          aria-label="数据处理流程"
+          data-i18n-aria-label="privacy.flowLabel"
+        >
+          <div class="flow-node">
+            <span class="micro-label">INPUT</span>
+            <strong data-i18n="privacy.inputTitle">键盘 / 鼠标</strong>
+            <p data-i18n="privacy.inputBody">只读取动作与时间</p>
+          </div>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="flow-node flow-node-accent">
+            <span class="micro-label">LOCAL SQLITE</span>
+            <strong data-i18n="privacy.aggregateTitle">聚合计数</strong>
+            <p data-i18n="privacy.aggregateBody">不保存输入内容</p>
+          </div>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="flow-node">
+            <span class="micro-label">DASHBOARD</span>
+            <strong data-i18n="privacy.dashboardTitle">你的仪表盘</strong>
+            <p data-i18n="privacy.dashboardBody">只在本机显示</p>
+          </div>
+          <div
+            class="cloud-blocked"
+            aria-label="不会上传云端"
+            data-i18n-aria-label="privacy.cloudLabel"
+          >
+            <span aria-hidden="true">×</span>
+            CLOUD
+          </div>
+        </div>
+
+        <div class="privacy-notes reveal">
+          <div>
+            <span class="micro-label">NEVER STORED</span>
+            <p data-i18n="privacy.neverStoredBody">
+              输入文字 · 快捷键序列 · 应用名 · 窗口标题 · 屏幕内容 · 原始指针轨迹
+            </p>
+          </div>
+          <div>
+            <span class="micro-label">ALWAYS LOCAL</span>
+            <p data-i18n="privacy.alwaysLocalBody">
+              分钟桶保留 48 小时，小时聚合保留 90 天，日聚合留到你主动清除。
+            </p>
+          </div>
+          <a class="text-link" href="https://github.com/justcodingnobb/Tactile/blob/main/PRIVACY.md">
+            <span data-i18n="privacy.readMore">阅读完整隐私说明</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="download-section" id="download" aria-labelledby="download-title">
+        <div class="download-panel reveal">
+          <div class="download-copy">
+            <p class="eyebrow light">
+              <span class="eyebrow-index">05</span>
+              GET TACTILE
+            </p>
+            <h2 id="download-title">
+              <span data-i18n="download.titleLine1">把你的操作，</span><br />
+              <span data-i18n="download.titleLine2">留在自己手里。</span>
+            </h2>
+            <p data-i18n="download.description">
+              当前版本是公开 Beta。安装包由 GitHub Releases 提供，应用内更新使用独立签名校验。
+            </p>
+            <a
+              class="button button-lime"
+              href="https://github.com/justcodingnobb/Tactile/releases/latest"
+            >
+              <span data-i18n="download.cta">前往 GitHub Releases</span>
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M4 10h11M11 6l4 4-4 4" />
+              </svg>
+            </a>
+            <span class="download-version"
+              ><span data-i18n="download.versionLabel">最新公开测试版 ·</span>
+              <span data-app-version></span
+            ></span>
+          </div>
+
+          <div class="platform-cards">
+            <article>
+              <div class="platform-head">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M16.7 12.8c0-2.7 2.2-4 2.3-4.1a5 5 0 0 0-3.9-2.1c-1.7-.2-3.2 1-4.1 1s-2.2-1-3.6-1C5.4 6.7 3.5 8.2 2.5 10.4c-2.1 3.6-.5 9 1.5 11.9 1 1.4 2.1 3 3.6 2.9 1.4-.1 2-1 3.7-1s2.2 1 3.7 1c1.5 0 2.5-1.4 3.4-2.8 1.1-1.6 1.6-3.1 1.6-3.2-.1 0-3.3-1.3-3.3-4.4ZM14.2 4.9c.8-1 1.3-2.3 1.2-3.7-1.2.1-2.7.8-3.6 1.8-.8.9-1.4 2.3-1.2 3.6 1.3.1 2.7-.7 3.6-1.7Z" />
+                </svg>
+                <div><strong>macOS</strong><span>Apple Silicon · Intel</span></div>
+              </div>
+              <p data-i18n="download.macosNote">macOS 12+ · 需要“输入监控”权限</p>
+              <a href="https://github.com/justcodingnobb/Tactile/releases/latest"
+                ><span data-i18n="download.macos">下载 DMG</span>
+                <span aria-hidden="true">↗</span></a
+              >
+            </article>
+            <article>
+              <div class="platform-head">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 4.8 10.1 3v8H2V4.8Zm9.3-2L22 1v10H11.3V2.8ZM2 12.3h8.1v8L2 19.2v-6.9Zm9.3 0H22V23l-10.7-1.5v-9.2Z" />
+                </svg>
+                <div><strong>Windows</strong><span>NSIS installer</span></div>
+              </div>
+              <p data-i18n="download.windowsNote">
+                普通用户权限即可采集 · 支持深浅主题
+              </p>
+              <a href="https://github.com/justcodingnobb/Tactile/releases/latest"
+                ><span data-i18n="download.windows">下载安装包</span>
+                <span aria-hidden="true">↗</span></a
+              >
+            </article>
+          </div>
+        </div>
+
+        <div class="install-steps reveal">
+          <article>
+            <span>01</span>
+            <h3 data-i18n="download.step1Title">下载当前 Beta</h3>
+            <p data-i18n="download.step1Body">
+              在 Releases 页面选择对应平台与芯片架构的安装包。
+            </p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3 data-i18n="download.step2Title">授予必要权限</h3>
+            <p data-i18n="download.step2Body">
+              macOS 需要输入监控；Windows 通常无需额外权限。
+            </p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3 data-i18n="download.step3Title">让数据留在本机</h3>
+            <p data-i18n="download.step3Body">
+              打开仪表盘，开始积累只属于你的聚合统计。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-section" aria-labelledby="faq-title">
+        <div class="faq-heading reveal">
+          <p class="eyebrow">
+            <span class="eyebrow-index">06</span>
+            BEFORE YOU INSTALL
+          </p>
+          <h2 id="faq-title">
+            <span data-i18n="faq.titleLine1">你可能</span><br />
+            <span data-i18n="faq.titleLine2">还会问。</span>
+          </h2>
+        </div>
+        <div class="faq-list reveal">
+          <details>
+            <summary data-i18n="faq.q1">它真的不知道我输入了什么吗？</summary>
+            <p data-i18n="faq.a1">
+              采集层只记录物理键位和聚合次数，不保存文字、按键序列、剪贴板或应用上下文。
+              检测到 macOS 安全输入时，按键统计会暂停。
+            </p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q2">需要联网才能使用吗？</summary>
+            <p data-i18n="faq.a2">
+              不需要。统计、数据库和导出都在本机完成。唯一的网络请求是可选的应用更新检查，
+              可以在设置中关闭。
+            </p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q3">为什么 macOS 提示应用未签名？</summary>
+            <p data-i18n="faq.a3">
+              当前 Beta 尚未配置 Apple Developer ID 公证。首次从 DMG 打开时可能触发
+              Gatekeeper 提示，具体解除隔离步骤见仓库 README。
+            </p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q4">数据保存在哪里？</summary>
+            <p>
+              <span data-i18n="faq.a4Prefix">数据保存在用户应用数据目录下的 </span
+              ><code>tactile.db</code
+              ><span data-i18n="faq.a4Suffix"
+                >。数据库没有额外的应用层加密，依赖操作系统账户和磁盘权限保护。</span
+              >
+            </p>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <span class="brand-mark small" aria-hidden="true"><i></i><i></i></span>
+        <div>
+          <strong data-i18n="footer.brand">指痕 / TACTILE</strong
+          ><span data-i18n="footer.tagline">只记节奏，不记文字。</span>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/justcodingnobb/Tactile">GitHub</a>
+        <a href="https://github.com/justcodingnobb/Tactile/releases/latest">Releases</a>
+        <a
+          href="https://github.com/justcodingnobb/Tactile/blob/main/PRIVACY.md"
+          data-i18n="footer.privacy"
+          >隐私</a
+        >
+        <a href="https://github.com/justcodingnobb/Tactile/blob/main/LICENSE">Apache 2.0</a>
+      </div>
+      <div class="footer-meta">
+        <span>BUILT IN THE OPEN</span>
+        <span>© 2026 TACTILE</span>
+      </div>
+    </footer>
+
+    <noscript>
+      <div class="noscript-note" data-i18n="noscript">
+        启用 JavaScript 后可以体验键盘与点击热区演示；页面其余内容仍可正常阅读。
+      </div>
+    </noscript>
+  </body>
+</html>
