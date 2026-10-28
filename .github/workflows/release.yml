@@ -57,10 +57,10 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            args: --target aarch64-apple-darwin --bundles dmg
+            args: --target aarch64-apple-darwin --bundles app,dmg
             rust_target: aarch64-apple-darwin
           - os: macos-latest
-            args: --target x86_64-apple-darwin --bundles dmg
+            args: --target x86_64-apple-darwin --bundles app,dmg
             rust_target: x86_64-apple-darwin
           - os: windows-latest
             args: --bundles nsis
@@ -97,9 +97,12 @@ jobs:
           projectPath: "."
           tagName: ${{ github.ref_name }}
           releaseName: "Tactile ${{ github.ref_name }}"
-          releaseDraft: true
+          # Publish directly so releases/latest serves latest.json without a manual step.
+          releaseDraft: false
           # releases/latest excludes prereleases, so beta tags must be normal releases.
           prerelease: false
           generateReleaseNotes: true
           updaterJsonPreferNsis: true
+          # tauri-action's default naming appends the arch to .app.tar.gz, so
+          # the aarch64 and x86_64 updater archives do not collide.
           args: ${{ matrix.args }}

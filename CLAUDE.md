@@ -70,11 +70,13 @@ Window close hides to tray instead of quitting; only explicit exit (tray Quit) e
 - macOS needs Input Monitoring permission only; do not add Accessibility, Screen Recording, or other permissions.
 - Windows cannot detect secure input fields, and hooks may miss events from elevated apps.
 - The CSP in `tauri.conf.json` only allows `ipc:` connections. Webview code stays network-free; the only network access is the opt-out GitHub update check from Rust.
-- Release signing/notarization are not configured; the updater is configured via
-  `tauri-plugin-updater` with GitHub `latest.json`. `.github/workflows/release.yml`
-  builds draft releases on `v*` tags, and `npm run version:set -- <semver>` keeps
-  package/Cargo versions aligned. Tauri-action generates `latest.json`; publishing
-  jobs run serially so the per-platform manifests merge instead of racing.
+- Developer ID signing/notarization are not configured; macOS builds are ad-hoc
+  signed with their entitlements. The updater uses `tauri-plugin-updater` with
+  GitHub `latest.json`; `.github/workflows/release.yml` publishes non-draft
+  releases on `v*` tags, and `npm run version:set -- <semver>` keeps
+  package/Cargo versions aligned. Tauri-action generates `latest.json`;
+  publishing jobs run serially so the per-platform manifests merge instead of
+  racing.
 - Launch at login is opt-in (`AppSettings::default` has it off).
 - The product name, crate names, bundle identifier and database filename all use Tactile.
 - Browser preview: `npm run dev` then open `http://127.0.0.1:1420/?preview=keyboard` (or `overview`, `mouse`, `trends`, `settings`) to land in demo mode on that page. Dev builds only.
