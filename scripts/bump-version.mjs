@@ -54,6 +54,8 @@ await replace(
   `$1${next}$2`,
 );
 
+// Read before cargo metadata so Cargo cannot normalize the checkout's line endings.
+let cargoLock = await readFile(path.join(root, "Cargo.lock"), "utf8");
 const { stdout } = await promisify(execFile)(
   "cargo",
   ["metadata", "--no-deps", "--format-version", "1", "--offline"],
@@ -61,10 +63,10 @@ const { stdout } = await promisify(execFile)(
 );
 const workspacePackages = JSON.parse(stdout).packages.map(({ name }) => name);
 
-let cargoLock = await readFile(path.join(root, "Cargo.lock"), "utf8");
 for (const name of workspacePackages) {
+  // Replace only the version literal so the checkout's line endings are preserved.
   const pattern = new RegExp(
-    `(\\[\\[package\\]\\]\\nname = "${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"\\nversion = ")[^"]+(")`,
+    `(\\[\\[package\\]\\]\\r?\\nname = "${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"\\r?\\nversion = ")[^"]+(")`,
     "g",
   );
   if (!cargoLock.match(pattern)) {

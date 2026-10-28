@@ -179,8 +179,9 @@ The workflow produces macOS arm64/x86_64 and Windows artifacts through
 signed artifacts. Publish jobs run serially so each platform is merged into one
 manifest. The updater endpoint points at
 `releases/latest/download/latest.json`, which only works once the repository
-and release are publicly downloadable; GitHub excludes drafts and
-prereleases from `latest`.
+and release are publicly downloadable. Drafts must be published manually
+before clients can see them. Beta tags are published as normal releases so
+`releases/latest` resolves to their `latest.json`.
 
 ## Data & Privacy
 

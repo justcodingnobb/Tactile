@@ -98,7 +98,8 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "Tactile ${{ github.ref_name }}"
           releaseDraft: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          # releases/latest excludes prereleases, so beta tags must be normal releases.
+          prerelease: false
           generateReleaseNotes: true
           updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
