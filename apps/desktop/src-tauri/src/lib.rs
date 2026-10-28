@@ -7,9 +7,10 @@ mod shortcuts;
 mod worker;
 
 use database::Store;
-use runtime::{RuntimeState, lock};
+use runtime::{FaultSource, RuntimeState, lock};
 use std::panic::{AssertUnwindSafe, catch_unwind};
-use tactile_platform::main_display_size;
+use tactile_core::models::CaptureStatus;
+use tactile_platform::{main_display_size, permission_granted};
 use tauri::{AppHandle, Manager, RunEvent, WindowEvent};
 
 /// The Windows updater calls `cleanup_before_exit` directly before exiting,
@@ -55,6 +56,14 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .resources_table()
         .add(FinalizeOnCleanup(handle.clone()));
     let state = handle.state::<RuntimeState>();
+    // Record the initial permission state before any status can be emitted.
+    if !permission_granted() {
+        state.set_fault(
+            FaultSource::Permission,
+            CaptureStatus::PermissionRequired,
+            None,
+        );
+    }
     // The tray is a convenience; the app still works if it cannot be created.
     if let Err(error) = shortcuts::create_tray(&handle) {
         eprintln!("tactile: tray unavailable: {error}");

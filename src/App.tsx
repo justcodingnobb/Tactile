@@ -163,7 +163,7 @@ function App() {
           onShare={() => setShareOpen(true)}
           demo={demo}
           onLeaveDemo={control.leaveDemo}
-          hidden={onboarding}
+          hidden={onboarding || !ready}
         />
         {!onboarding && status.status === "permission_required" && (
           <div className="banner banner-warning" role="alert">

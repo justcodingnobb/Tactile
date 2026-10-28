@@ -28,6 +28,21 @@ const PANIC_BACKOFF: Duration = Duration::from_secs(1);
 const MINUTE_RETENTION_HOURS: i64 = 48;
 const HOUR_RETENTION_DAYS: i64 = 90;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PermissionTransition {
+    NoChange,
+    Granted,
+    Revoked,
+}
+
+fn permission_transition(previous: Option<bool>, granted: bool) -> PermissionTransition {
+    match (previous, granted) {
+        (Some(previous), granted) if previous == granted => PermissionTransition::NoChange,
+        (_, true) => PermissionTransition::Granted,
+        (_, false) => PermissionTransition::Revoked,
+    }
+}
+
 pub fn spawn(app: AppHandle) {
     let spawned = thread::Builder::new()
         .name("tactile-worker".into())
@@ -60,7 +75,7 @@ fn supervise(app: AppHandle) {
 struct Worker {
     source: PlatformCapture,
     gated: bool,
-    permitted: bool,
+    permitted: Option<bool>,
     failures: u32,
     next_start: Instant,
     last_permission: Option<Instant>,
@@ -77,7 +92,7 @@ impl Worker {
         Self {
             source: PlatformCapture::new(),
             gated: false,
-            permitted: false,
+            permitted: None,
             failures: 0,
             next_start: now,
             last_permission: None,
@@ -116,22 +131,24 @@ impl Worker {
         }
         self.last_permission = Some(Instant::now());
         let granted = permission_granted();
-        if granted == self.permitted {
-            return;
-        }
-        self.permitted = granted;
-        if granted {
-            state.clear_fault(FaultSource::Permission);
-            // Permission just arrived; try the hook right away.
-            self.next_start = Instant::now();
-            self.failures = 0;
-        } else {
-            let _ = self.source.stop();
-            state.set_fault(
-                FaultSource::Permission,
-                CaptureStatus::PermissionRequired,
-                None,
-            );
+        let transition = permission_transition(self.permitted, granted);
+        self.permitted = Some(granted);
+        match transition {
+            PermissionTransition::Granted => {
+                state.clear_fault(FaultSource::Permission);
+                // Permission just arrived; try the hook right away.
+                self.next_start = Instant::now();
+                self.failures = 0;
+            }
+            PermissionTransition::Revoked => {
+                let _ = self.source.stop();
+                state.set_fault(
+                    FaultSource::Permission,
+                    CaptureStatus::PermissionRequired,
+                    None,
+                );
+            }
+            PermissionTransition::NoChange => {}
         }
     }
 
@@ -162,7 +179,10 @@ impl Worker {
     }
 
     fn ensure_running(&mut self, state: &RuntimeState, gated: bool) {
-        if self.source.is_running() || !self.permitted || Instant::now() < self.next_start {
+        if self.source.is_running()
+            || self.permitted != Some(true)
+            || Instant::now() < self.next_start
+        {
             return;
         }
         match self.source.start() {
@@ -290,6 +310,50 @@ fn backoff(failures: u32) -> Duration {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn first_denied_permission_check_revokes() {
+        assert_eq!(
+            permission_transition(None, false),
+            PermissionTransition::Revoked
+        );
+    }
+
+    #[test]
+    fn first_granted_permission_check_grants() {
+        assert_eq!(
+            permission_transition(None, true),
+            PermissionTransition::Granted
+        );
+    }
+
+    #[test]
+    fn permission_revocation_is_detected() {
+        assert_eq!(
+            permission_transition(Some(true), false),
+            PermissionTransition::Revoked
+        );
+    }
+
+    #[test]
+    fn permission_grant_is_detected() {
+        assert_eq!(
+            permission_transition(Some(false), true),
+            PermissionTransition::Granted
+        );
+    }
+
+    #[test]
+    fn unchanged_permission_is_no_change() {
+        assert_eq!(
+            permission_transition(Some(true), true),
+            PermissionTransition::NoChange
+        );
+        assert_eq!(
+            permission_transition(Some(false), false),
+            PermissionTransition::NoChange
+        );
+    }
 
     #[test]
     fn backoff_grows_and_caps() {
