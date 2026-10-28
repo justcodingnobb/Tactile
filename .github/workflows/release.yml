@@ -97,7 +97,7 @@ jobs:
           projectPath: "."
           tagName: ${{ github.ref_name }}
           releaseName: "Tactile ${{ github.ref_name }}"
-          # Draft asset URLs require an API Accept header; publish directly.
+          # Publish directly so releases/latest serves latest.json without a manual step.
           releaseDraft: false
           # releases/latest excludes prereleases, so beta tags must be normal releases.
           prerelease: false

@@ -195,7 +195,9 @@ The workflow produces macOS arm64/x86_64 and Windows artifacts through
 signed artifacts. Publish jobs run serially so each platform is merged into one
 manifest. The updater endpoint points at
 `releases/latest/download/latest.json`. Releases are published directly rather
-than as drafts so manifest URLs are public downloads. Beta tags are published
+than as drafts so that endpoint resolves without a manual step. Manifest URLs
+point at GitHub API asset URLs; the updater downloads them with
+`Accept: application/octet-stream`. Beta tags are published
 as normal releases so `releases/latest` resolves to their `latest.json`.
 
 ## Data & Privacy
