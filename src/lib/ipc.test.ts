@@ -79,4 +79,12 @@ describe("updater IPC lifecycle", () => {
     expect(update.downloadAndInstall).toHaveBeenCalledOnce();
     expect(update.close).toHaveBeenCalledOnce();
   });
+
+  it("rejects installation when no downloaded update handle is pending", async () => {
+    const { installPendingUpdate } = await import("./ipc");
+
+    await expect(installPendingUpdate(() => undefined)).rejects.toThrow(
+      "No update is ready to install.",
+    );
+  });
 });

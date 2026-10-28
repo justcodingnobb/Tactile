@@ -277,8 +277,8 @@ export async function checkForUpdate(manual: boolean): Promise<UpdateCheckOutcom
 export async function installPendingUpdate(
   onProgress: (progress: number | null) => void,
 ): Promise<void> {
-  if (!isTauri || !pendingUpdate) {
-    return;
+  if (!pendingUpdate) {
+    throw new Error("No update is ready to install.");
   }
   let downloaded = 0;
   let total: number | null = null;

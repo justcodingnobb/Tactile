@@ -187,6 +187,17 @@ impl RuntimeState {
         }
     }
 
+    /// Stops the worker and writes pending aggregates exactly once.
+    pub fn finalize(&self) {
+        if self.exiting.swap(true, Ordering::SeqCst) {
+            return;
+        }
+        if let Err(error) = crate::flush::flush(self) {
+            use std::io::Write;
+            let _ = writeln!(std::io::stderr(), "tactile: final flush failed: {error}");
+        }
+    }
+
     pub fn attach_tray_pause(&self, item: MenuItem<Wry>) {
         *lock(&self.tray_pause) = Some(item);
     }

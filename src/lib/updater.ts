@@ -1,4 +1,5 @@
 import type { AppSettings } from "../types";
+import type { Dictionary } from "../i18n";
 
 export const LAST_UPDATE_CHECK_KEY = "tactile.lastUpdateCheck";
 export const UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
@@ -17,7 +18,7 @@ export type UpdatePhase =
   | { kind: "downloading"; progress: number | null }
   | { kind: "ready" }
   | { kind: "upToDate" }
-  | { kind: "error"; message: string };
+  | { kind: "error"; detail: string | null };
 
 export function readLastUpdateCheck(now = Date.now()): number | null {
   try {
@@ -47,16 +48,13 @@ export function shouldAutoCheck(
   return last === null || now - last >= UPDATE_CHECK_INTERVAL_MS;
 }
 
-export function updateErrorMessage(cause: unknown): string {
+export function updateErrorDetail(cause: unknown): string | null {
   const raw = cause instanceof Error ? cause.message : String(cause);
-  const message = raw.trim();
-  if (!message) {
-    return "Update check failed.";
+  const detail = raw.trim();
+  if (!detail) {
+    return null;
   }
-  if (/404|not found/i.test(message)) {
-    return "Update information is not available yet (404).";
-  }
-  return message.length > 160 ? `${message.slice(0, 157)}...` : message;
+  return detail.length > 160 ? `${detail.slice(0, 157)}...` : detail;
 }
 
 export function downloadProgress(
@@ -69,50 +67,51 @@ export function downloadProgress(
   return Math.max(0, Math.min(1, downloaded / contentLength));
 }
 
-export function relativeCheckTime(timestamp: number | null, language: "zh" | "en"): string {
+function withCount(template: string, count: number): string {
+  return template.replace("{count}", String(count));
+}
+
+export function relativeCheckTime(timestamp: number | null, t: Dictionary): string {
   if (timestamp === null) {
-    return language === "zh" ? "尚未检查" : "Not checked yet";
+    return t.updates.notChecked;
   }
   const elapsed = Math.max(0, Date.now() - timestamp);
   const minutes = Math.floor(elapsed / 60_000);
   if (minutes < 1) {
-    return language === "zh" ? "刚刚" : "Just now";
+    return t.updates.justNow;
   }
   if (minutes < 60) {
-    return language === "zh" ? `${minutes} 分钟前` : `${minutes}m ago`;
+    return withCount(t.updates.minutesAgo, minutes);
   }
   const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return language === "zh" ? `${hours} 小时前` : `${hours}h ago`;
+    return withCount(t.updates.hoursAgo, hours);
   }
   const days = Math.floor(hours / 24);
-  return language === "zh" ? `${days} 天前` : `${days}d ago`;
+  return withCount(t.updates.daysAgo, days);
 }
 
 export function updateSettingsLabel(
   phase: UpdatePhase,
-  language: "zh" | "en",
+  t: Dictionary,
 ): string | null {
   if (phase.kind === "checking") {
-    return language === "zh" ? "正在检查…" : "Checking…";
+    return t.settings.checking;
   }
   if (phase.kind === "upToDate") {
-    return language === "zh" ? "已是最新版本" : "You're up to date";
+    return t.settings.upToDate;
   }
   if (phase.kind === "available") {
-    return language === "zh"
-      ? `发现新版本 v${phase.version}`
-      : `Version ${phase.version} is available`;
+    return t.updates.available.replace("{version}", phase.version);
   }
-  if (phase.kind === "downloading" || phase.kind === "ready") {
-    return language === "zh"
-      ? "更新已下载，重启后完成安装"
-      : "Update downloaded; restart to finish";
+  if (phase.kind === "downloading") {
+    return t.updates.downloading;
+  }
+  if (phase.kind === "ready") {
+    return t.updates.ready;
   }
   if (phase.kind === "error") {
-    return language === "zh"
-      ? `检查失败：${phase.message ?? ""}`
-      : `Check failed: ${phase.message ?? ""}`;
+    return t.settings.updateFailed;
   }
   return null;
 }

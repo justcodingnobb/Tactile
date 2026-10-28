@@ -1,4 +1,4 @@
-import { ShieldCheck, WifiOff } from "lucide-react";
+import { RefreshCw, ShieldCheck } from "lucide-react";
 import type { Dictionary } from "../i18n";
 import type { Language } from "../lib/format";
 
@@ -44,14 +44,10 @@ export function Onboarding({
           </p>
         </article>
         <article>
-          <div className="onboarding-icon"><WifiOff size={22} /></div>
+          <div className="onboarding-icon"><RefreshCw size={22} /></div>
           <p className="eyebrow">02 / NETWORK</p>
           <h2>Quiet by design.</h2>
-          <p>
-            {language === "zh"
-              ? "当前测试版完全离线运行，不发送统计、账号、设备或使用数据。"
-              : "This beta runs fully offline and sends no statistics, account, device, or usage data."}
-          </p>
+          <p>{t.onboarding.updateDisclosure}</p>
         </article>
         <article className="onboarding-permission">
           <p className="eyebrow">

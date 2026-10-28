@@ -10,10 +10,11 @@ import {
   readLastUpdateCheck,
   relativeCheckTime,
   shouldAutoCheck,
-  updateErrorMessage,
+  updateErrorDetail,
   writeLastUpdateCheck,
 } from "../lib/updater";
 import { resolveLanguage } from "../lib/format";
+import { dictionary } from "../i18n";
 import type { AppSettings } from "../types";
 
 export function useUpdater(
@@ -31,8 +32,15 @@ export function useUpdater(
   const checkUpdatesRef = useRef(settings.check_updates);
   checkUpdatesRef.current = settings.check_updates;
   const checking = useRef(false);
+  const phaseRef = useRef(phase);
   const mounted = useRef(true);
   const language = resolveLanguage(settings.language);
+  const t = dictionary(language);
+  phaseRef.current = phase;
+  const setUpdatePhase = useCallback((next: UpdatePhase) => {
+    phaseRef.current = next;
+    setPhase(next);
+  }, []);
 
   useEffect(() => {
     mounted.current = true;
@@ -43,15 +51,19 @@ export function useUpdater(
 
   const check = useCallback(
     async ({ manual }: { manual: boolean }) => {
-      if (checking.current) {
+      if (
+        checking.current ||
+        phaseRef.current.kind === "downloading" ||
+        phaseRef.current.kind === "ready"
+      ) {
         return;
       }
       checking.current = true;
-      setPhase({ kind: "checking" });
+      setUpdatePhase({ kind: "checking" });
       try {
         const result = await checkForUpdate(manual);
         if (result.kind === "unavailable") {
-          setPhase({ kind: "idle" });
+          setUpdatePhase({ kind: "idle" });
           return;
         }
         const now = Date.now();
@@ -65,14 +77,14 @@ export function useUpdater(
           availableVersionRef.current = update.version;
           setDismissedVersion(null);
           setNotesOpen(false);
-          setPhase({
+          setUpdatePhase({
             kind: "available",
             version: update.version,
             notes: update.notes,
             date: update.date,
           });
         } else {
-          setPhase({ kind: "upToDate" });
+          setUpdatePhase({ kind: "upToDate" });
         }
       } catch (cause) {
         if (!mounted.current) {
@@ -83,20 +95,21 @@ export function useUpdater(
         const now = Date.now();
         writeLastUpdateCheck(now);
         setLastChecked(now);
-        const message = updateErrorMessage(cause);
-        setPhase({ kind: "error", message });
+        const detail = updateErrorDetail(cause);
+        setUpdatePhase({ kind: "error", detail });
         if (manual) {
-          notify(message);
+          notify(t.updates.failedToast);
         }
       } finally {
         checking.current = false;
       }
     },
-    [notify],
+    [notify, setUpdatePhase, t],
   );
 
+  const autoCheckBlocked = phase.kind === "downloading" || phase.kind === "ready";
   useEffect(() => {
-    if (!ready || !settings.check_updates) {
+    if (!ready || !settings.check_updates || autoCheckBlocked) {
       return;
     }
     let timer: number | null = null;
@@ -113,39 +126,38 @@ export function useUpdater(
       }
       window.clearInterval(interval);
     };
-  }, [check, ready, settings.check_updates]);
+  }, [autoCheckBlocked, check, ready, settings.check_updates]);
 
   const install = useCallback(async () => {
     if (phase.kind !== "available") {
       return;
     }
-    setPhase({ kind: "downloading", progress: 0 });
+    setUpdatePhase({ kind: "downloading", progress: 0 });
     try {
       await installPendingUpdate((progress) => {
         if (mounted.current) {
-          setPhase({ kind: "downloading", progress });
+          setUpdatePhase({ kind: "downloading", progress });
         }
       });
       if (mounted.current) {
-        setPhase({ kind: "ready" });
+        setUpdatePhase({ kind: "ready" });
       }
     } catch (cause) {
       if (!mounted.current) {
         return;
       }
-      const message = updateErrorMessage(cause);
-      setPhase({ kind: "error", message });
-      notify(message);
+      setUpdatePhase({ kind: "error", detail: updateErrorDetail(cause) });
+      notify(t.updates.installFailed);
     }
-  }, [notify, phase]);
+  }, [notify, phase, setUpdatePhase, t]);
 
   const restart = useCallback(async () => {
     try {
       await relaunchApp();
-    } catch (cause) {
-      notify(updateErrorMessage(cause));
+    } catch {
+      notify(t.errors.generic);
     }
-  }, [notify]);
+  }, [notify, t]);
 
   const dismiss = useCallback(() => {
     if (phase.kind === "available" || phase.kind === "downloading" || phase.kind === "ready") {
@@ -163,7 +175,7 @@ export function useUpdater(
     restart,
     dismiss,
     availableVersion: availableVersionRef.current,
-    lastCheckedLabel: relativeCheckTime(lastChecked, language),
+    lastCheckedLabel: relativeCheckTime(lastChecked, t),
     bannerVisible:
       (phase.kind === "available" ||
         phase.kind === "downloading" ||

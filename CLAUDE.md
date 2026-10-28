@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Tactile (指痕) is a local-first Tauri 2 desktop app (macOS + Windows) that records aggregate keyboard/pointer statistics into a local SQLite DB. Privacy is the product: never capture typed text, shortcut sequences, app names, window titles, screen content, or raw pointer paths, and make no network requests. `PRIVACY.md` is the data inventory; keep it in sync when stored data changes.
+Tactile (指痕) is a local-first Tauri 2 desktop app (macOS + Windows) that records aggregate keyboard/pointer statistics into a local SQLite DB. Privacy is the product: never capture typed text, shortcut sequences, app names, window titles, screen content, or raw pointer paths. The only network request is the opt-out GitHub update check performed from Rust by `tauri-plugin-updater`, enabled by default and disclosed in `PRIVACY.md` and onboarding. `PRIVACY.md` is the data inventory; keep it in sync when stored data changes.
 
 ## Commands
 
@@ -69,7 +69,7 @@ Window close hides to tray instead of quitting; only explicit exit (tray Quit) e
 
 - macOS needs Input Monitoring permission only; do not add Accessibility, Screen Recording, or other permissions.
 - Windows cannot detect secure input fields, and hooks may miss events from elevated apps.
-- The CSP in `tauri.conf.json` only allows `ipc:` connections; keep the app network-free.
+- The CSP in `tauri.conf.json` only allows `ipc:` connections. Webview code stays network-free; the only network access is the opt-out GitHub update check from Rust.
 - Release signing/notarization are not configured; the updater is configured via
   `tauri-plugin-updater` with GitHub `latest.json`. `.github/workflows/release.yml`
   builds draft releases on `v*` tags, and `npm run version:set -- <semver>` keeps
