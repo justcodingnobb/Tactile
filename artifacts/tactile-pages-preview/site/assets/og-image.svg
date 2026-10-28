@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#ece9df"/>
+  <g stroke="#d5d0c3" stroke-width="1">
+    <path d="M0 96h1200M0 192h1200M0 288h1200M0 384h1200M0 480h1200M0 576h1200"/>
+    <path d="M80 0v630M192 0v630M304 0v630M416 0v630M528 0v630M640 0v630M752 0v630M864 0v630M976 0v630M1088 0v630"/>
+  </g>
+  <rect x="0" y="0" width="1200" height="12" fill="#171713"/>
+  <rect x="864" y="12" width="336" height="12" fill="#ff5a1f"/>
+  <rect x="1128" y="12" width="72" height="12" fill="#d8ff3e"/>
+
+  <rect x="48" y="52" width="610" height="460" rx="18" fill="#f4f1e8" stroke="#d5d0c3"/>
+
+  <g transform="translate(72 62)">
+    <image href="./icon.png" width="50" height="50"/>
+  </g>
+  <text x="142" y="86" fill="#171713" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="2">TACTILE</text>
+  <text x="142" y="108" fill="#77766d" font-family="Menlo, Courier, monospace" font-size="10" letter-spacing="0.6">LOCAL-FIRST INPUT INSTRUMENT</text>
+
+  <text x="68" y="282" fill="#171713" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="90" font-weight="700">RHYTHM,</text>
+  <text x="68" y="374" fill="#171713" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="90" font-weight="700">NOT</text>
+  <text x="286" y="374" fill="#ff5a1f" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="90" font-weight="700">WORDS.</text>
+  <rect x="70" y="412" width="92" height="8" fill="#d8ff3e"/>
+  <text x="70" y="466" fill="#33332d" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="600">Key heatmaps · Pointer distance · Local SQLite</text>
+  <text x="70" y="498" fill="#33332d" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="600">No typed text. No account. No cloud sync.</text>
+
+  <rect x="698" y="108" width="408" height="404" rx="34" fill="#22221d"/>
+  <text x="732" y="148" fill="#96948b" font-family="Menlo, Courier, monospace" font-size="11" letter-spacing="1.5">●  LIVE DEMO</text>
+  <text x="1062" y="148" fill="#96948b" font-family="Menlo, Courier, monospace" font-size="11">001</text>
+  <line x1="732" y1="170" x2="1072" y2="170" stroke="#4d4a41"/>
+
+  <text x="732" y="207" fill="#96948b" font-family="Menlo, Courier, monospace" font-size="10" letter-spacing="1.5">LAST INPUT</text>
+  <text x="974" y="207" fill="#96948b" font-family="Menlo, Courier, monospace" font-size="10" letter-spacing="1.3">SESSION KEYS</text>
+  <text x="732" y="280" fill="#ece9df" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="76" font-weight="700">A</text>
+  <text x="998" y="280" fill="#d8ff3e" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="76" font-weight="700">128</text>
+
+  <g fill="#ece9df">
+    <rect x="732" y="310" width="30" height="28" rx="5"/><rect x="768" y="310" width="30" height="28" rx="5"/>
+    <rect x="804" y="310" width="30" height="28" rx="5"/><rect x="840" y="310" width="30" height="28" rx="5"/>
+    <rect x="876" y="310" width="30" height="28" rx="5"/><rect x="912" y="310" width="30" height="28" rx="5"/>
+    <rect x="948" y="310" width="30" height="28" rx="5"/><rect x="984" y="310" width="30" height="28" rx="5"/>
+    <rect x="1020" y="310" width="52" height="28" rx="5"/>
+    <rect x="732" y="344" width="44" height="28" rx="5"/><rect x="782" y="344" width="30" height="28" rx="5"/>
+    <rect x="818" y="344" width="30" height="28" rx="5"/><rect x="854" y="344" width="30" height="28" rx="5"/>
+    <rect x="890" y="344" width="30" height="28" rx="5"/><rect x="926" y="344" width="30" height="28" rx="5"/>
+    <rect x="962" y="344" width="30" height="28" rx="5"/><rect x="998" y="344" width="30" height="28" rx="5"/>
+    <rect x="1034" y="344" width="38" height="28" rx="5"/>
+    <rect x="732" y="378" width="54" height="28" rx="5"/><rect x="792" y="378" width="30" height="28" rx="5"/>
+    <rect x="828" y="378" width="30" height="28" rx="5"/><rect x="864" y="378" width="30" height="28" rx="5"/>
+    <rect x="900" y="378" width="30" height="28" rx="5"/><rect x="936" y="378" width="30" height="28" rx="5"/>
+    <rect x="972" y="378" width="30" height="28" rx="5"/><rect x="1008" y="378" width="30" height="28" rx="5"/>
+    <rect x="1044" y="378" width="28" height="28" rx="5"/>
+  </g>
+  <rect x="864" y="378" width="30" height="28" rx="5" fill="#ff5a1f"/>
+  <line x1="732" y1="444" x2="1072" y2="444" stroke="#4d4a41"/>
+  <text x="732" y="470" fill="#96948b" font-family="Menlo, Courier, monospace" font-size="10" letter-spacing="1.4">CLICK MAP / 24×16</text>
+  <text x="1024" y="470" fill="#d8ff3e" font-family="Menlo, Courier, monospace" font-size="12">42,118</text>
+  <g fill="#ff5a1f">
+    <rect x="732" y="482" width="12" height="9" rx="2"/><rect x="749" y="482" width="12" height="9" rx="2"/>
+    <rect x="766" y="482" width="12" height="9" rx="2"/><rect x="783" y="482" width="12" height="9" rx="2"/>
+    <rect x="800" y="482" width="12" height="9" rx="2"/><rect x="817" y="482" width="12" height="9" rx="2"/>
+    <rect x="834" y="482" width="12" height="9" rx="2"/><rect x="851" y="482" width="12" height="9" rx="2"/>
+    <rect x="868" y="482" width="12" height="9" rx="2" fill="#d8ff3e"/><rect x="885" y="482" width="12" height="9" rx="2"/>
+  </g>
+
+</svg>

@@ -84,9 +84,15 @@ if (configHasVersion) {
   await writeJson(configPath, config);
 }
 
+await promisify(execFile)(
+  process.execPath,
+  [path.join(root, "scripts/sync-site-version.mjs")],
+  { cwd: root },
+);
+
 console.log(`Set Tactile version to ${next}.`);
 console.log(
   configHasVersion
-    ? "Updated package.json, package-lock.json, Cargo.toml, Cargo.lock, and tauri.conf.json."
-    : "Updated package.json, package-lock.json, Cargo.toml, and Cargo.lock; tauri.conf.json reads the crate version.",
+    ? "Updated package.json, package-lock.json, Cargo.toml, Cargo.lock, tauri.conf.json, and site/assets/version.js."
+    : "Updated package.json, package-lock.json, Cargo.toml, Cargo.lock, and site/assets/version.js; tauri.conf.json reads the crate version.",
 );
