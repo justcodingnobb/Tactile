@@ -6,10 +6,11 @@ import {
   readLastUpdateCheck,
   relativeCheckTime,
   shouldAutoCheck,
-  updateErrorMessage,
+  updateErrorDetail,
   updateSettingsLabel,
   writeLastUpdateCheck,
 } from "./updater";
+import { dictionary } from "../i18n";
 
 describe("update check throttling", () => {
   beforeEach(() => {
@@ -48,8 +49,10 @@ describe("update check throttling", () => {
 });
 
 describe("update display helpers", () => {
-  it("turns 404 failures into a short readable message", () => {
-    expect(updateErrorMessage(new Error("HTTP 404: Not Found"))).toContain("404");
+  it("keeps the raw plugin error as secondary detail", () => {
+    expect(updateErrorDetail(new Error("HTTP 404: Not Found"))).toBe(
+      "HTTP 404: Not Found",
+    );
   });
 
   it("returns null progress when the server provides no length", () => {
@@ -62,13 +65,25 @@ describe("update display helpers", () => {
   });
 
   it("localizes relative check times", () => {
-    expect(relativeCheckTime(null, "en")).toBe("Not checked yet");
-    expect(relativeCheckTime(Date.now() - 2 * 60 * 60 * 1000, "zh")).toBe("2 小时前");
+    expect(relativeCheckTime(null, dictionary("en"))).toBe("Not checked yet");
+    expect(relativeCheckTime(Date.now() - 2 * 60 * 60 * 1000, dictionary("zh"))).toBe(
+      "2 小时前",
+    );
   });
 
   it("describes non-idle check states in the settings row", () => {
-    expect(updateSettingsLabel({ kind: "checking" }, "en")).toBe("Checking…");
-    expect(updateSettingsLabel({ kind: "upToDate" }, "zh")).toBe("已是最新版本");
-    expect(updateSettingsLabel({ kind: "idle" }, "en")).toBeNull();
+    expect(updateSettingsLabel({ kind: "checking" }, dictionary("en"))).toBe("Checking…");
+    expect(updateSettingsLabel({ kind: "upToDate" }, dictionary("zh"))).toBe(
+      "已是最新版本",
+    );
+    expect(updateSettingsLabel({ kind: "idle" }, dictionary("en"))).toBeNull();
+  });
+
+  it("uses a localized failure label while retaining raw error detail", () => {
+    const detail = "HTTP 500: Internal Server Error";
+    expect(updateSettingsLabel({ kind: "error", detail }, dictionary("zh"))).toBe(
+      "检查更新失败",
+    );
+    expect(updateErrorDetail(new Error(detail))).toBe(detail);
   });
 });
