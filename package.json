@@ -1,6 +1,6 @@
 {
   "name": "tactile",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "private": true,
   "description": "A private, local-first input telemetry desk.",
   "type": "module",
