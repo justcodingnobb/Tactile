@@ -106,3 +106,35 @@ jobs:
           # tauri-action's default naming appends the arch to .app.tar.gz, so
           # the aarch64 and x86_64 updater archives do not collide.
           args: ${{ matrix.args }}
+
+  manifest:
+    # tauri-action writes api.github.com asset URLs into latest.json. Those
+    # count against GitHub's unauthenticated API limit (60/hour per IP) and
+    # fail with 403 once it is used up, so point clients at the public
+    # releases/download URLs instead. Signatures cover the files, not URLs.
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Rewrite latest.json to public download URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="$(mktemp -d)"
+          gh release download "$TAG" --pattern latest.json --dir "$dir"
+          gh release view "$TAG" --json assets \
+            --jq '[.assets[] | {key: .apiUrl, value: .url}] | from_entries' > "$dir/urls.json"
+          jq --slurpfile urls "$dir/urls.json" '
+            .platforms |= map_values(
+              .url = ($urls[0][.url] // .url)
+              | if (.url | startswith("https://github.com/")) then .
+                else error("unmapped updater URL: \(.url)") end)
+          ' "$dir/latest.json" > "$dir/latest.fixed.json"
+          mv "$dir/latest.fixed.json" "$dir/latest.json"
+          jq -r '.platforms | to_entries[] | "\(.key) \(.value.url)"' "$dir/latest.json"
+          gh release upload "$TAG" "$dir/latest.json" --clobber
