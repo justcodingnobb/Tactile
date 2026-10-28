@@ -178,11 +178,28 @@ pub fn main_display_size() -> (f64, f64) {
     }
 }
 
+#[cfg(target_os = "macos")]
+#[link(name = "IOKit", kind = "framework")]
+unsafe extern "C" {
+    fn IOHIDCheckAccess(request_type: i32) -> i32;
+}
+
+#[cfg(target_os = "macos")]
+const IOHID_REQUEST_TYPE_LISTEN_EVENT: i32 = 1;
+#[cfg(target_os = "macos")]
+const IOHID_ACCESS_TYPE_GRANTED: i32 = 0;
+
+#[cfg(target_os = "macos")]
+fn access_type_is_granted(access_type: i32) -> bool {
+    access_type == IOHID_ACCESS_TYPE_GRANTED
+}
+
 pub fn permission_granted() -> bool {
     #[cfg(target_os = "macos")]
     {
-        use objc2_core_graphics::CGPreflightListenEventAccess;
-        CGPreflightListenEventAccess()
+        // SAFETY: IOHIDCheckAccess has no pointer arguments and no state that
+        // the caller must retain; the constant is its documented listen type.
+        access_type_is_granted(unsafe { IOHIDCheckAccess(IOHID_REQUEST_TYPE_LISTEN_EVENT) })
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -193,11 +210,12 @@ pub fn permission_granted() -> bool {
 pub fn request_permission() -> bool {
     #[cfg(target_os = "macos")]
     {
-        use objc2_core_graphics::{CGPreflightListenEventAccess, CGRequestListenEventAccess};
-        if CGPreflightListenEventAccess() {
+        use objc2_core_graphics::CGRequestListenEventAccess;
+        if permission_granted() {
             return true;
         }
-        CGRequestListenEventAccess()
+        CGRequestListenEventAccess();
+        permission_granted()
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -284,6 +302,14 @@ mod tests {
             capture.poll(Duration::from_millis(1)),
             Err(CaptureError::Disconnected)
         ));
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_hid_access_only_grants_granted() {
+        assert!(access_type_is_granted(0));
+        assert!(!access_type_is_granted(1));
+        assert!(!access_type_is_granted(2));
     }
 
     #[cfg(target_os = "macos")]
