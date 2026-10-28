@@ -11,7 +11,6 @@ export function UpdateBanner({
   onRestart,
   version,
   t,
-  language,
 }: {
   phase: UpdatePhase;
   notesOpen: boolean;
@@ -21,7 +20,6 @@ export function UpdateBanner({
   onRestart: () => void;
   version: string | null;
   t: Dictionary;
-  language: "zh" | "en";
 }) {
   const visibleVersion = version ?? "";
   if (phase.kind !== "available" && phase.kind !== "downloading" && phase.kind !== "ready") {
@@ -32,9 +30,7 @@ export function UpdateBanner({
       <ArrowUpCircle size={18} />
       <div className="update-banner-copy">
         <strong>
-          {language === "zh"
-            ? `新版本 ${visibleVersion} 可用`
-            : `Version ${visibleVersion} is available`}
+          {t.updates.available.replace("{version}", visibleVersion)}
         </strong>
         {phase.kind === "downloading" && (
           <span>

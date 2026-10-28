@@ -50,7 +50,7 @@ export function SettingsPage({
   busy: boolean;
 }) {
   const demo = status.demo_mode;
-  const checkStatus = updateSettingsLabel(updater.phase, language);
+  const checkStatus = updateSettingsLabel(updater.phase, t);
   return (
     <div className="page settings-page">
       <SectionHeading
@@ -168,7 +168,9 @@ export function SettingsPage({
                 type="button"
                 onClick={() => void updater.check({ manual: true })}
                 disabled={
-                  updater.phase.kind === "checking" || updater.phase.kind === "downloading"
+                  updater.phase.kind === "checking" ||
+                  updater.phase.kind === "downloading" ||
+                  updater.phase.kind === "ready"
                 }
               >
                 <RefreshCw
@@ -180,14 +182,19 @@ export function SettingsPage({
                   : t.settings.checkNow}
               </button>
               {checkStatus && (
-                <small
-                  className={
-                    updater.phase.kind === "error" ? "form-error" : "setting-status-block"
-                  }
-                  role={updater.phase.kind === "error" ? "alert" : "status"}
-                >
-                  {checkStatus}
-                </small>
+                <>
+                  <small
+                    className={
+                      updater.phase.kind === "error" ? "form-error" : "setting-status-block"
+                    }
+                    role={updater.phase.kind === "error" ? "alert" : "status"}
+                  >
+                    {checkStatus}
+                  </small>
+                  {updater.phase.kind === "error" && updater.phase.detail && (
+                    <small className="setting-status-block">{updater.phase.detail}</small>
+                  )}
+                </>
               )}
             </div>
           </div>

@@ -8,9 +8,21 @@ mod worker;
 
 use database::Store;
 use runtime::{RuntimeState, lock};
-use std::sync::atomic::Ordering;
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use tactile_platform::main_display_size;
 use tauri::{AppHandle, Manager, RunEvent, WindowEvent};
+
+/// The Windows updater calls `cleanup_before_exit` directly before exiting,
+/// so dropping this app resource provides the final flush on that path.
+struct FinalizeOnCleanup(AppHandle);
+
+impl tauri::Resource for FinalizeOnCleanup {}
+
+impl Drop for FinalizeOnCleanup {
+    fn drop(&mut self) {
+        on_exit(&self.0);
+    }
+}
 
 /// Opens the database, falling back to an in-memory store so a broken or
 /// locked file degrades to "not saved" instead of a crash on launch.
@@ -39,6 +51,9 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         volatile,
         main_display_size(),
     ));
+    let _ = handle
+        .resources_table()
+        .add(FinalizeOnCleanup(handle.clone()));
     let state = handle.state::<RuntimeState>();
     // The tray is a convenience; the app still works if it cannot be created.
     if let Err(error) = shortcuts::create_tray(&handle) {
@@ -57,11 +72,14 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn on_exit(app: &AppHandle) {
-    if let Some(state) = app.try_state::<RuntimeState>() {
-        state.exiting.store(true, Ordering::SeqCst);
-        if let Err(error) = flush::flush(&state) {
-            eprintln!("tactile: final flush failed: {error}");
+    let result = catch_unwind(AssertUnwindSafe(|| {
+        if let Some(state) = app.try_state::<RuntimeState>() {
+            state.finalize();
         }
+    }));
+    if result.is_err() {
+        use std::io::Write;
+        let _ = writeln!(std::io::stderr(), "tactile: finalization panicked");
     }
 }
 

@@ -207,7 +207,7 @@ pub fn request_permission() -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::keymap::{rdev_key_code, rdev_key_code_for_platform};
+    use crate::keymap::rdev_key_code_for_platform;
     use crate::rdev_listener::{map_rdev_event, update_modifiers_for_platform};
     use std::collections::HashSet;
     use std::time::SystemTime;
@@ -289,6 +289,7 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[test]
     fn macos_keycode_maps_to_physical_id() {
+        use crate::keymap::rdev_key_code;
         use crate::macos::{modifier_set_from_flags, rdev_key_from_macos_code};
         use objc2_core_graphics::CGEventFlags;
 

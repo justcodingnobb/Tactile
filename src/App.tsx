@@ -209,7 +209,6 @@ function App() {
             onDismiss={updater.dismiss}
             onRestart={() => void updater.restart()}
             t={t}
-            language={language}
           />
         )}
         <main className={onboarding ? "main onboarding-main" : "main"}>
